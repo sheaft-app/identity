@@ -20,6 +20,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using IdentityServer4.EntityFramework.DbContexts;
 using System.Linq;
+using IdentityServer4.EntityFramework.Entities;
+using System.Collections.Generic;
+using IdentityServer4.Services;
 
 namespace Sheaft.Identity
 {
@@ -194,6 +197,7 @@ namespace Sheaft.Identity
             })
             .AddDeveloperSigningCredential();
 
+            services.AddScoped<IProfileService, ProfileService>();
             services.AddApplicationInsightsTelemetry();
 
             services.AddLogging(config =>
@@ -252,7 +256,7 @@ namespace Sheaft.Identity
                         rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Producer:value")) { Id = Configuration.GetValue<string>("Roles:Producer:id") }).Wait();
                         rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Store:value")) { Id = Configuration.GetValue<string>("Roles:Store:id") }).Wait();
                         rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Anonymous:value")) { Id = Configuration.GetValue<string>("Roles:Anonymous:id") }).Wait();
-                       
+
                         authContext.SaveChanges();
                     }
 
@@ -280,18 +284,205 @@ namespace Sheaft.Identity
 
                         authContext.SaveChanges();
                     }
+
+                    if (!configContext.IdentityResources.Any())
+                    {
+                        configContext.IdentityResources.AddRange(new List<IdentityResource>
+                         {
+                             new IdentityResource { Name = IdentityServerConstants.StandardScopes.OpenId, UserClaims = new List<IdentityResourceClaim>{ new IdentityResourceClaim { Type = JwtClaimTypes.Subject} } },
+                             new IdentityResource { Name = IdentityServerConstants.StandardScopes.OfflineAccess, UserClaims = new List<IdentityResourceClaim>{ new IdentityResourceClaim { Type = IdentityServerConstants.StandardScopes.OfflineAccess } } },
+                             new IdentityResource { Name = JwtClaimTypes.Role, UserClaims = new List<IdentityResourceClaim>{ new IdentityResourceClaim { Type = JwtClaimTypes.Role } } },
+                             new IdentityResource {
+                                 Name = IdentityServerConstants.StandardScopes.Email,
+                                 UserClaims = new List<IdentityResourceClaim>{
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.Email },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.EmailVerified }
+                                 }
+                             },
+                             new IdentityResource { Name = IdentityServerConstants.StandardScopes.Address, UserClaims = new List<IdentityResourceClaim>{ new IdentityResourceClaim { Type = JwtClaimTypes.Address } } },
+                             new IdentityResource {
+                                 Name = IdentityServerConstants.StandardScopes.Phone,
+                                 UserClaims = new List<IdentityResourceClaim>{
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.PhoneNumber },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.PhoneNumberVerified }
+                                 }
+                             },
+                             new IdentityResource {
+                                 Name = IdentityServerConstants.StandardScopes.Profile,
+                                 UserClaims = new List<IdentityResourceClaim>{
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.GivenName },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.FamilyName },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.Name },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.Gender },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.BirthDate },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.NickName },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.MiddleName },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.Picture },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.PreferredUserName },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.WebSite },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.ZoneInfo },
+                                     new IdentityResourceClaim { Type = JwtClaimTypes.UpdatedAt },
+                                     new IdentityResourceClaim { Type = "company_id" }
+                                 }
+                             }
+                         });
+                        configContext.SaveChanges();
+                    }
+
+                    if (!configContext.ApiScopes.Any())
+                    {
+                        configContext.ApiScopes.AddRange(new List<ApiScope>{
+                            new ApiScope()
+                            {
+                                Enabled = true,
+                                Name = "read",
+                                DisplayName = "Sheaft Read API"
+                            },
+                            new ApiScope()
+                            {
+                                Enabled = true,
+                                Name = "create",
+                                DisplayName = "Sheaft Create API"
+                            },
+                            new ApiScope()
+                            {
+                                Enabled = true,
+                                Name = "update",
+                                DisplayName = "Sheaft Update API"
+                            },
+                            new ApiScope()
+                            {
+                                Enabled = true,
+                                Name = "delete",
+                                DisplayName = "Sheaft Delete API"
+                            }
+                        });
+
+                        configContext.SaveChanges();
+                    }
+
+                    if (!configContext.ApiResources.Any())
+                    {
+                        configContext.ApiResources.Add(new ApiResource()
+                        {
+                            Enabled = true,
+                            Name = "api",
+                            DisplayName = "Sheaft API",
+                            Scopes = new List<ApiResourceScope> {
+                                new ApiResourceScope(){ Scope = "read" },
+                                new ApiResourceScope(){ Scope = "create" },
+                                new ApiResourceScope(){ Scope = "update" },
+                                new ApiResourceScope(){ Scope = "delete" },
+                                new ApiResourceScope(){ Scope = "crud" },
+                            }
+                        });
+
+                        configContext.SaveChanges();
+                    }
+
+                    if (!configContext.Clients.Any())
+                    {
+                        configContext.Clients.AddRange(new List<Client>
+                         {
+                             new Client
+                             {
+                                 ClientId = Configuration.GetValue<string>("Client:id"),
+                                 ClientSecrets = new List<ClientSecret>
+                                 {
+                                     new ClientSecret{Value = Configuration.GetValue<string>("Client:secret")}
+                                 },
+                                 ClientName = "Sheaft",
+                                 ClientUri = "https://www.sheaft.com",
+                                 RequireClientSecret = false,
+                                 AllowAccessTokensViaBrowser = true,
+                                 RequirePkce = true,
+                                 AllowedCorsOrigins = new List<ClientCorsOrigin>() {
+                                     new ClientCorsOrigin { Origin = "http://localhost:4200" },
+                                     new ClientCorsOrigin { Origin = "https://localhost:5003" },
+                                     new ClientCorsOrigin { Origin = "https://www.sheaft.com" },
+                                     new ClientCorsOrigin { Origin = "https://app.sheaft.com" },
+                                     new ClientCorsOrigin { Origin = "https://api.sheaft.com" },
+                                     new ClientCorsOrigin { Origin = "https://sheaft-app.azurewebsites.net" },
+                                     new ClientCorsOrigin { Origin = "https://sheaft-api.azurewebsites.net" },
+                                     new ClientCorsOrigin { Origin = "https://sheaft.z28.web.core.windows.net" }
+                                 },
+                                 AllowedScopes = new List<ClientScope>() {
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.OpenId },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.OfflineAccess },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.Profile },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.Email },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.Address },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.Phone },
+                                     new ClientScope { Scope = JwtClaimTypes.Role },
+                                     new ClientScope { Scope = "crud" }
+                                 },
+                                 RequireConsent = false,
+                                 AllowedGrantTypes = IdentityServer4.Models.GrantTypes.CodeAndClientCredentials.Select(c => new ClientGrantType{ GrantType = c } ).ToList(),
+                                 Enabled = true,
+                                 RedirectUris = new List<ClientRedirectUri>() {
+                                     new ClientRedirectUri { RedirectUri = "http://localhost:4200" },
+                                     new ClientRedirectUri { RedirectUri = "http://localhost:4200/#/" },
+                                     new ClientRedirectUri { RedirectUri = "http://localhost:4200/#/callback" },
+                                     new ClientRedirectUri { RedirectUri = "http://localhost:4200/#/callback-silent" },
+                                     new ClientRedirectUri { RedirectUri = "https://app.sheaft.com" },
+                                     new ClientRedirectUri { RedirectUri = "https://app.sheaft.com/#/" },
+                                     new ClientRedirectUri { RedirectUri = "https://app.sheaft.com/#/callback" },
+                                     new ClientRedirectUri { RedirectUri = "https://app.sheaft.com/#/callback-silent" },
+                                     new ClientRedirectUri { RedirectUri = "https://www.sheaft.com" },
+                                     new ClientRedirectUri { RedirectUri = "https://www.sheaft.com/#/" },
+                                     new ClientRedirectUri { RedirectUri = "https://www.sheaft.com/#/callback" },
+                                     new ClientRedirectUri { RedirectUri = "https://www.sheaft.com/#/callback-silent" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft-app.azurewebsites.net" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft-app.azurewebsites.net/#/" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft-app.azurewebsites.net/#/callback" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft-app.azurewebsites.net/#/callback-silent" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft.z28.web.core.windows.net" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft.z28.web.core.windows.net/#/" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft.z28.web.core.windows.net/#/callback" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft.z28.web.core.windows.net/#/callback-silent" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft.freshworks.com/sp/OAUTH/170950321282462678/callback" },
+                                     new ClientRedirectUri { RedirectUri = "https://support.sheaft.com/sp/OAUTH/170950321282462678/callback" },
+                                 },
+                                 PostLogoutRedirectUris = new List<ClientPostLogoutRedirectUri>() {
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:4200"},
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:4200/#/" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:4200/#/logout" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://app.sheaft.com" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://app.sheaft.com/#/" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://app.sheaft.com/#/logout" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://www.sheaft.com" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://www.sheaft.com/#/" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://www.sheaft.com/#/logout" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://sheaft-app.azurewebsites.net" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://sheaft-app.azurewebsites.net/#/" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://sheaft-app.azurewebsites.net/#/logout" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://sheaft.z28.web.core.windows.net" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://sheaft.z28.web.core.windows.net/#/" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://sheaft.z28.web.core.windows.net/#/logout" }
+                                 },
+                                 EnableLocalLogin = true,
+                                 AllowOfflineAccess = true,
+                                 UpdateAccessTokenClaimsOnRefresh = true,
+                                 IncludeJwtId = true,
+                                 AlwaysSendClientClaims = true,
+                                 
+                             }
+                         });
+
+                        configContext.SaveChanges();
+                    }
                 }
+
+                app.UseStaticFiles();
+
+                app.UseRouting();
+                app.UseIdentityServer();
+                app.UseAuthorization();
+                app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapDefaultControllerRoute();
+                });
             }
-
-            app.UseStaticFiles();
-
-            app.UseRouting();
-            app.UseIdentityServer();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapDefaultControllerRoute();
-            });
         }
     }
 }

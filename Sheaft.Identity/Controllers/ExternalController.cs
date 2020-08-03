@@ -287,7 +287,7 @@ namespace Sheaft.Identity.Controllers
                 if (!identityLoginResult.Succeeded) throw new Exception(identityLoginResult.Errors.First().Description);
             }
 
-            await _userManager.AddToRoleAsync(userLogin, _configuration.GetValue<string>("Roles:AppUser:Value"));
+            await _userManager.AddToRoleAsync(user, _configuration.GetValue<string>("Roles:AppUser:Value"));
 
             return user;
         }
