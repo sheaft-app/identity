@@ -264,11 +264,12 @@ namespace Sheaft.Identity
                     if (!authContext.Users.Any(u => u.UserName == adminEmail))
                     {
                         var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
-                        var result = um.CreateAsync(new AppUser() { 
-                            Id = Configuration.GetValue<string>("admin:id"), 
-                            UserName = adminEmail, 
-                            Email = adminEmail, 
-                            LastName = Configuration.GetValue<string>("admin:lastname"), 
+                        var result = um.CreateAsync(new AppUser()
+                        {
+                            Id = Configuration.GetValue<string>("admin:id"),
+                            UserName = adminEmail,
+                            Email = adminEmail,
+                            LastName = Configuration.GetValue<string>("admin:lastname"),
                             FirstName = Configuration.GetValue<string>("admin:firstname")
                         }, Configuration.GetValue<string>("admin:password")).Result;
 
@@ -495,27 +496,32 @@ namespace Sheaft.Identity
                                  UpdateAccessTokenClaimsOnRefresh = true,
                                  IncludeJwtId = true,
                                  AlwaysSendClientClaims = true,
-                                 
+
                              }
                          });
 
                         configContext.SaveChanges();
                     }
                 }
-
-                app.UseHttpsRedirection();
-                app.UseStaticFiles();
-
-                app.UseRouting();
-
-                app.UseIdentityServer();
-                app.UseAuthorization();
-
-                app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapDefaultControllerRoute();
-                });
             }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
+            app.UseIdentityServer();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapDefaultControllerRoute();
+            });
         }
     }
 }

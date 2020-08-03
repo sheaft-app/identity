@@ -3,7 +3,6 @@ using System;
 
 namespace Sheaft.Identity.Models
 {
-
     public class AccountOptions
     {
         public static bool AllowLocalLogin = true;
@@ -13,6 +12,6 @@ namespace Sheaft.Identity.Models
         public static bool ShowLogoutPrompt = true;
         public static bool AutomaticRedirectAfterSignOut = false;
 
-        public static string InvalidCredentialsErrorMessage = "Invalid username or password";
+        public static string InvalidCredentialsErrorMessage = "Nom d'utilisateur ou mot de passe invalide";
     }
 }
