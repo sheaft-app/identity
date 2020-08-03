@@ -1,0 +1,92 @@
+@model RegisterViewModel
+    <link rel="stylesheet" href="~/css/login.css"/>
+
+<div class="login-page">
+    <div class="row">
+        <div class="login-container">
+            <div class="left-panel">
+                <div>
+                    <img src="~/img/sheaft_white.svg" alt="SHEAFT" />
+                    <p class="left-panel-title">
+                        SHEAFT
+                    </p>
+                    <p class="left-panel-phrase">
+                    Vous avez déjà un compte ? C'est par ici !
+                    </p>
+                    <div class="left-panel-button-container">
+                        <a class="left-panel-button" href="@Url.Action("Login", "Account", new { returnUrl = Model.ReturnUrl })">Je me connecte</a>
+                    </div>
+                </div>
+            </div>
+            <div class="form right-panel">
+                <div class="form-container">
+                    @if (Model.VisibleExternalProviders.Any())
+                    {
+                        <div class="text-center form-header">
+                            <img src="~/img/sheaft_white.svg" alt="SHEAFT" />
+                            <p class="right-panel-title">
+                                Créez un compte via
+                            </p>
+                        </div>
+                        <div class="external-providers text-center">
+                            <ul class="list-inline">
+                                @foreach (var provider in Model.VisibleExternalProviders.OrderBy(c => c.DisplayName))
+                                {
+                                    <li>
+                                        <a class="btn btn-default external-a" asp-controller="External" asp-action="Challenge"
+                                           asp-route-provider="@provider.AuthenticationScheme"
+                                           asp-route-returnUrl="@Model.ReturnUrl">
+
+                                            @if (provider.DisplayName == "Microsoft")
+                                            {
+                                                <span class="fab fa-microsoft"></span>
+                                            }
+
+                                            @if (provider.DisplayName == "Facebook")
+                                            {
+                                                <span class="fab fa-facebook-f"></span>
+                                            }
+
+                                            @if (provider.DisplayName == "Google")
+                                            {
+                                                <span class="fab fa-google"></span>
+                                            }
+                                            @if (provider.DisplayName == "Twitter")
+                                            {
+                                                <span class="fab fa-twitter"></span>
+                                            }
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center form-header">
+                            <img src="~/img/sheaft_white.svg" alt="SHEAFT" />
+                            <p class="right-panel-title">
+                                Créez un compte via
+                            </p>
+                        </div>
+                    }
+                    <p class="right-panel-phrase">ou créez un compte local</p>
+                    <form asp-route="Register" class="login-form">
+                        @Html.Hidden("returnUrl", Model.ReturnUrl)
+                        <partial name="_ValidationSummary" />
+                        <fieldset>
+                            @*<input type="text" class="form-control" placeholder="Nom" asp-for="LastName" autofocus>
+            <input type="text" class="form-control" placeholder="Prénom" asp-for="FirstName">*@
+                            <input type="email" class="form-control" placeholder="Adresse email" asp-for="Username" autofocus>
+                            <input type="password" class="form-control" placeholder="Mot de passe" asp-for="Password" autocomplete="off">
+                            <input type="password" class="form-control" placeholder="Confirmer le mot de passe" asp-for="ConfirmPassword" autocomplete="off">
+
+                            <button name="button" class="btn btn-primary action">Créer mon compte</button>
+                            <a class="right-panel-mobile-button" href="@Url.Action("Login", "Account", new { returnUrl = Model.ReturnUrl })">J'ai déjà un compte</a>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
