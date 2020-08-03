@@ -260,19 +260,21 @@ namespace Sheaft.Identity
                         authContext.SaveChanges();
                     }
 
-                    var id = Configuration.GetValue<string>("admin:id");
-                    var email = Configuration.GetValue<string>("admin:email");
-                    var pwd = Configuration.GetValue<string>("admin:password");
-                    var firstname = Configuration.GetValue<string>("admin:firstname");
-                    var lastname = Configuration.GetValue<string>("admin:lastname");
-
-                    if (!authContext.Users.Any(u => u.UserName == email))
+                    var adminEmail = Configuration.GetValue<string>("admin:email");
+                    if (!authContext.Users.Any(u => u.UserName == adminEmail))
                     {
                         var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
-                        var result = um.CreateAsync(new AppUser() { Id = id, UserName = email, Email = email, LastName = lastname, FirstName = firstname }, pwd).Result;
+                        var result = um.CreateAsync(new AppUser() { 
+                            Id = Configuration.GetValue<string>("admin:id"), 
+                            UserName = adminEmail, 
+                            Email = Configuration.GetValue<string>("admin:password"), 
+                            LastName = Configuration.GetValue<string>("admin:lastname"), 
+                            FirstName = Configuration.GetValue<string>("admin:firstname")
+                        }, Configuration.GetValue<string>("admin:password")).Result;
+
                         if (result.Succeeded)
                         {
-                            var admin = authContext.Users.FirstOrDefault(u => u.Email == email);
+                            var admin = authContext.Users.FirstOrDefault(u => u.Email == adminEmail);
                             um.AddToRoleAsync(admin, Configuration.GetValue<string>("Roles:Admin:value")).Wait();
 
                             um.AddClaimAsync(admin, new Claim(JwtClaimTypes.Name, $"{admin.FirstName} {admin.LastName}")).Wait();
@@ -280,6 +282,34 @@ namespace Sheaft.Identity
                             um.AddClaimAsync(admin, new Claim(JwtClaimTypes.FamilyName, admin.LastName)).Wait();
                             um.AddClaimAsync(admin, new Claim(JwtClaimTypes.Email, admin.Email)).Wait();
                             um.AddClaimAsync(admin, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Admin:value"))).Wait();
+                        }
+
+                        authContext.SaveChanges();
+                    }
+
+                    var supportEmail = Configuration.GetValue<string>("support:email");
+                    if (!authContext.Users.Any(u => u.UserName == supportEmail))
+                    {
+                        var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
+                        var result = um.CreateAsync(new AppUser()
+                        {
+                            Id = Configuration.GetValue<string>("support:id"),
+                            UserName = adminEmail,
+                            Email = Configuration.GetValue<string>("support:password"),
+                            LastName = Configuration.GetValue<string>("support:lastname"),
+                            FirstName = Configuration.GetValue<string>("support:firstname")
+                        }, Configuration.GetValue<string>("support:password")).Result;
+
+                        if (result.Succeeded)
+                        {
+                            var support = authContext.Users.FirstOrDefault(u => u.Email == supportEmail);
+                            um.AddToRoleAsync(support, Configuration.GetValue<string>("Roles:Support:value")).Wait();
+
+                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.Name, $"{support.FirstName} {support.LastName}")).Wait();
+                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.GivenName, support.FirstName)).Wait();
+                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.FamilyName, support.LastName)).Wait();
+                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.Email, support.Email)).Wait();
+                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Support:value"))).Wait();
                         }
 
                         authContext.SaveChanges();
