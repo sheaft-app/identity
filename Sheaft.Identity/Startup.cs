@@ -91,16 +91,7 @@ namespace Sheaft.Identity
                     options.Scope.Add("email");
                     options.CallbackPath = "/signin-microsoft";
                     options.UsePkce = true;
-                    options.Events = new OAuthEvents
-                    {
-                        //OnCreatingTicket = context =>
-                        //{
-                        //    var identity = (ClaimsIdentity)context.Principal.Identity;
-                        //    var profileImg = context.User.GetProperty("picture").ToString();
-                        //    identity.AddClaim(new Claim(JwtClaimTypes.Picture, profileImg));
-                        //    return Task.CompletedTask;
-                        //}                        
-                    };
+                    options.Events = new OAuthEvents();
                 })
                 .AddGoogle("gg", "Google", options =>
                 {
@@ -254,6 +245,13 @@ namespace Sheaft.Identity
                         rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Admin:value")) { Id = Configuration.GetValue<string>("Roles:Admin:id") }).Wait();
                         rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Support:value")) { Id = Configuration.GetValue<string>("Roles:Support:id") }).Wait();
                         rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:AppUser:value")) { Id = Configuration.GetValue<string>("Roles:AppUser:id") }).Wait();
+                        //specific for sheaft
+                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:User:value")) { Id = Configuration.GetValue<string>("Roles:User:id") }).Wait();
+                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Consumer:value")) { Id = Configuration.GetValue<string>("Roles:Consumer:id") }).Wait();
+                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Owner:value")) { Id = Configuration.GetValue<string>("Roles:Owner:id") }).Wait();
+                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Producer:value")) { Id = Configuration.GetValue<string>("Roles:Producer:id") }).Wait();
+                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Store:value")) { Id = Configuration.GetValue<string>("Roles:Store:id") }).Wait();
+                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Anonymous:value")) { Id = Configuration.GetValue<string>("Roles:Anonymous:id") }).Wait();
                        
                         authContext.SaveChanges();
                     }

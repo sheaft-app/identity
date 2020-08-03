@@ -1,34 +1,53 @@
 ﻿@model LoggedOutViewModel
 
-@{ 
+@{
     // set this so the layout rendering sees an anonymous user
     ViewData["signed-out"] = true;
 }
 
-<div class="logged-out-page">
-    <h1>
-        Logout
-        <small>You are now logged out</small>
-    </h1>
+<link rel="stylesheet" href="~/css/login.css" />
 
-    @if (Model.PostLogoutRedirectUri != null)
-    {
-        <div>
-            Click <a class="PostLogoutRedirectUri" href="@Model.PostLogoutRedirectUri">here</a> to return to the
-            <span>@Model.ClientName</span> application.
+<div class="login-page">
+    <div class="row">
+        <div class="login-container">
+            <div class="left-panel">
+                <div>
+                    <img src="~/img/sheaft_white.svg" alt="SHEAFT" />
+                    <p class="left-panel-title">
+                        SHEAFT
+                    </p>
+                    @*<p class="left-panel-phrase">
+                        &Agrave; très vite !
+                    </p>
+                    <div class="left-panel-button-container">
+                    </div>*@
+                </div>
+            </div>
+            <div class="form right-panel">
+                <div class="form-container">
+                    <div class="text-center form-header">
+                        <img src="~/img/sheaft_white.svg" alt="SHEAFT" />
+                        <p class="right-panel-title">
+                            &Agrave; très vite !
+                        </p>
+                    </div>
+                    <p class="right-panel-phrase">Vous êtes à présent déconnecté</p>
+                    <div class="login-form">
+                        <fieldset>
+                            <a class="btn btn-primary action" href="@(!string.IsNullOrWhiteSpace(Model.PostLogoutRedirectUri) ? Model.PostLogoutRedirectUri : "https://app.sheaft.com")">Retourner &agrave; l'application</a>
+                            @if (Model.SignOutIframeUrl != null)
+                            {
+                                <iframe width="0" height="0" class="signout" src="@Model.SignOutIframeUrl"></iframe>
+                            }
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
         </div>
-    }
-
-    @if (Model.SignOutIframeUrl != null)
-    {
-        <iframe width="0" height="0" class="signout" src="@Model.SignOutIframeUrl"></iframe>
-    }
+    </div>
 </div>
 
 @section scripts
 {
-    @if (Model.AutomaticRedirectAfterSignOut)
-    {
-        <script src="~/js/signout-redirect.js"></script>
-    }
+    <script src="~/js/signout-redirect.js"></script>
 }

@@ -1,15 +1,40 @@
 ﻿@model LogoutViewModel
+<link rel="stylesheet" href="~/css/login.css" />
 
-<div class="logout-page">
-    <div class="lead">
-        <h1>Logout</h1>
-        <p>Would you like to logut of IdentityServer?</p>
-    </div>
-
-    <form asp-action="Logout">
-        <input type="hidden" name="logoutId" value="@Model.LogoutId"  />
-        <div class="form-group">
-            <button class="btn btn-primary">Yes</button>
+<div class="login-page">
+    <div class="row">
+        <div class="login-container">
+            <div class="left-panel">
+                <div>
+                    <img src="~/img/sheaft_white.svg" alt="SHEAFT" />
+                    <p class="left-panel-title">
+                        SHEAFT
+                    </p>
+                    @*<p class="left-panel-phrase">
+                        Se déconnecter
+                    </p>
+                    <div class="left-panel-button-container">
+                    </div>*@
+                </div>
+            </div>
+            <div class="form right-panel">
+                <div class="form-container">
+                    <div class="text-center form-header">
+                        <img src="~/img/sheaft_white.svg" alt="SHEAFT" />
+                        <p class="right-panel-title">
+                            Se déconnecter
+                        </p>
+                    </div>
+                    <p class="right-panel-phrase">Voulez-vous vous déconnecter de Sheaft ?</p>
+                    <form asp-action="Logout" class="login-form">
+                        <input type="hidden" name="logoutId" value="@Model.LogoutId" />
+                        <fieldset>
+                            <button class="btn btn-primary action">Déconnexion</button>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
         </div>
-    </form>
+    </div>
+</div>
 </div>

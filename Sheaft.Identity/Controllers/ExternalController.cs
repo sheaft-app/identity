@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Sheaft.Identity.Extensions;
 using Sheaft.Identity.Models;
@@ -29,6 +30,7 @@ namespace Sheaft.Identity.Controllers
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly IEventService _events;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<ExternalController> _logger;
 
         public ExternalController(
@@ -36,6 +38,7 @@ namespace Sheaft.Identity.Controllers
             SignInManager<AppUser> signInManager,
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
+            IConfiguration configuration,
             IEventService events,
             ILogger<ExternalController> logger)
         {
@@ -45,6 +48,7 @@ namespace Sheaft.Identity.Controllers
             _clientStore = clientStore;
             _events = events;
             _logger = logger;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -184,54 +188,106 @@ namespace Sheaft.Identity.Controllers
 
             // user's display name
             var name = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Name)?.Value ??
-                claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+                       claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+
             if (name != null)
             {
                 filtered.Add(new Claim(JwtClaimTypes.Name, name));
             }
-            else
+
+            var first = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.GivenName)?.Value ??
+                        claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName)?.Value;
+            if (first != null)
             {
-                var first = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.GivenName)?.Value ??
-                    claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName)?.Value;
-                var last = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.FamilyName)?.Value ??
-                    claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value;
-                if (first != null && last != null)
-                {
-                    filtered.Add(new Claim(JwtClaimTypes.Name, first + " " + last));
-                }
-                else if (first != null)
-                {
-                    filtered.Add(new Claim(JwtClaimTypes.Name, first));
-                }
-                else if (last != null)
-                {
-                    filtered.Add(new Claim(JwtClaimTypes.Name, last));
-                }
+                filtered.Add(new Claim(JwtClaimTypes.GivenName, first));
             }
 
-            // email
+            var last = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.FamilyName)?.Value ??
+                       claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value;
+            if (last != null)
+            {
+                filtered.Add(new Claim(JwtClaimTypes.FamilyName, last));
+            }
+
+            if (name == null && (first != null || last != null))
+            {
+                name = first + " " + last;
+                filtered.Add(new Claim(JwtClaimTypes.Name, name));
+            }
+
             var email = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Email)?.Value ??
-               claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+                        claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
             if (email != null)
             {
                 filtered.Add(new Claim(JwtClaimTypes.Email, email));
             }
 
-            var user = new AppUser
+            if (name == null && email != null)
             {
-                UserName = Guid.NewGuid().ToString(),
-            };
-            var identityResult = await _userManager.CreateAsync(user);
-            if (!identityResult.Succeeded) throw new Exception(identityResult.Errors.First().Description);
-
-            if (filtered.Any())
-            {
-                identityResult = await _userManager.AddClaimsAsync(user, filtered);
-                if (!identityResult.Succeeded) throw new Exception(identityResult.Errors.First().Description);
+                name = email;
+                filtered.Add(new Claim(JwtClaimTypes.Name, email));
             }
 
-            identityResult = await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, providerUserId, provider));
-            if (!identityResult.Succeeded) throw new Exception(identityResult.Errors.First().Description);
+            var phone = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PhoneNumber)?.Value ??
+                        claims.FirstOrDefault(x => x.Type == ClaimTypes.MobilePhone)?.Value;
+            if (phone != null)
+            {
+                filtered.Add(new Claim(JwtClaimTypes.PhoneNumber, phone));
+            }
+
+            var picture = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Picture)?.Value;
+            if (picture != null)
+            {
+                filtered.Add(new Claim(JwtClaimTypes.Picture, picture));
+            }
+
+            filtered.Add(new Claim(JwtClaimTypes.Role, "ANONYMOUS"));
+
+            var user = await _userManager.FindByNameAsync(email);
+            if (user == null)
+            {
+                user = new AppUser()
+                {
+                    UserName = email,
+                    Email = email,
+                    FirstName = first,
+                    LastName = last,
+                    PhoneNumber = phone
+                };
+
+                var identityResult = await _userManager.CreateAsync(user);
+                if (!identityResult.Succeeded) throw new Exception(identityResult.Errors.First().Description);
+
+                if (filtered.Any())
+                {
+                    identityResult = await _userManager.AddClaimsAsync(user, filtered);
+                    if (!identityResult.Succeeded) throw new Exception(identityResult.Errors.First().Description);
+                }
+            }
+            else
+            {
+                var newClaims = new List<Claim>();
+                var userClaims = await _userManager.GetClaimsAsync(user);
+                foreach (var claim in claims)
+                {
+                    var userClaim = userClaims?.FirstOrDefault(c => c.Type == claim.Type);
+                    if (userClaim == null)
+                        newClaims.Add(claim);
+                }
+
+                if (newClaims.Any())
+                    await _userManager.AddClaimsAsync(user, newClaims);
+            }
+
+            var userLogin = await _userManager.FindByLoginAsync(provider, providerUserId);
+            if (userLogin == null)
+            {
+                var identityLoginResult =
+                    await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, providerUserId, provider));
+                if (!identityLoginResult.Succeeded) throw new Exception(identityLoginResult.Errors.First().Description);
+            }
+
+            await _userManager.AddToRoleAsync(userLogin, _configuration.GetValue<string>("Roles:AppUser:Value"));
 
             return user;
         }
