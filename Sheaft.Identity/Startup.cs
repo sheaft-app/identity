@@ -267,7 +267,7 @@ namespace Sheaft.Identity
                         var result = um.CreateAsync(new AppUser() { 
                             Id = Configuration.GetValue<string>("admin:id"), 
                             UserName = adminEmail, 
-                            Email = Configuration.GetValue<string>("admin:password"), 
+                            Email = adminEmail, 
                             LastName = Configuration.GetValue<string>("admin:lastname"), 
                             FirstName = Configuration.GetValue<string>("admin:firstname")
                         }, Configuration.GetValue<string>("admin:password")).Result;
@@ -294,8 +294,8 @@ namespace Sheaft.Identity
                         var result = um.CreateAsync(new AppUser()
                         {
                             Id = Configuration.GetValue<string>("support:id"),
-                            UserName = adminEmail,
-                            Email = Configuration.GetValue<string>("support:password"),
+                            UserName = supportEmail,
+                            Email = supportEmail,
                             LastName = Configuration.GetValue<string>("support:lastname"),
                             FirstName = Configuration.GetValue<string>("support:firstname")
                         }, Configuration.GetValue<string>("support:password")).Result;
