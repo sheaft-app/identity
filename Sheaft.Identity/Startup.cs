@@ -266,7 +266,7 @@ namespace Sheaft.Identity
                         var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
                         var result = um.CreateAsync(new AppUser()
                         {
-                            Id = Configuration.GetValue<string>("admin:id"),
+                            Id = Configuration.GetValue<string>("admin:id").Replace("-", ""),
                             UserName = adminEmail,
                             Email = adminEmail,
                             LastName = Configuration.GetValue<string>("admin:lastname"),
@@ -294,7 +294,7 @@ namespace Sheaft.Identity
                         var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
                         var result = um.CreateAsync(new AppUser()
                         {
-                            Id = Configuration.GetValue<string>("support:id"),
+                            Id = Configuration.GetValue<string>("support:id").Replace("-", ""),
                             UserName = supportEmail,
                             Email = supportEmail,
                             LastName = Configuration.GetValue<string>("support:lastname"),
