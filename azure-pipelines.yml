@@ -10,19 +10,19 @@ trigger:
       - refs/tags/publish
 
 pool:
-  vmImage: "windows-latest"
+  vmImage: "ubuntu-latest"
 
 steps:
   - script: |
-      dotnet restore $(System.DefaultWorkingDirectory)/Auth/Auth.csproj
-      dotnet publish $(System.DefaultWorkingDirectory)/Auth/Auth.csproj --configuration Release --output publish_output/Sheaft.Auth/
+      dotnet restore $(System.DefaultWorkingDirectory)/Identity/Sheaft.Identity.csproj
+      dotnet publish $(System.DefaultWorkingDirectory)/Identity/Sheaft.Identity.csproj --configuration Release --output publish_output/Sheaft.Identity/
   - task: ArchiveFiles@2
     displayName: "Archive files"
     inputs:
-      rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Auth"
+      rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity"
       includeRootFolder: false
-      archiveFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Auth/build$(Build.BuildId).zip"
+      archiveFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId).zip"
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: '$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Auth/build$(Build.BuildId).zip'
-      artifactName: 'sheaft-auth'
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId).zip'
+      artifactName: 'sheaft-identity'
