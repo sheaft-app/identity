@@ -411,9 +411,7 @@ namespace Sheaft.Identity.Controllers
                 return View(model);
             }
 
-            await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Subject, user.Id));
             await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Email, user.Email));
-            await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.EmailVerified, false.ToString()));
             await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Role, _configuration.GetValue<string>("Roles:Anonymous:value")));
 
             await _userManager.AddToRoleAsync(user, _configuration.GetValue<string>("Roles:AppUser:value"));
@@ -589,8 +587,6 @@ namespace Sheaft.Identity.Controllers
 
                     await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Role, entityRole.NormalizedName));
                 }
-
-                await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Role, _configuration.GetValue<string>("Roles:AppUser:Value")));
             }
 
             if (model.CompanyId.HasValue)
