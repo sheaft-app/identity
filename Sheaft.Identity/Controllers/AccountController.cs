@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using SendGrid;
+using SendGrid.Helpers.Errors.Model;
 using SendGrid.Helpers.Mail;
 using Sheaft.Identity.Data;
 using Sheaft.Identity.Extensions;
@@ -464,10 +465,10 @@ namespace Sheaft.Identity.Controllers
             var user = await _context.Set<AppUser>().FirstOrDefaultAsync(r => r.Id == model.Id);
             if (user == null)
             {
-                return NotFound("Utilisateur introuvable.");
+                return NotFound($"Utilisateur {model.Id} introuvable.");
             }
 
-            var claims = await _context.UserClaims.Where(c => c.UserId == user.Id).ToListAsync(CancellationToken.None);
+            var claims = await _context.UserClaims.Where(c => c.UserId == user.Id).ToListAsync(HttpContext.RequestAborted);
 
             if (claims.Any(c => c.ClaimType == JwtClaimTypes.Picture))
             {
@@ -487,7 +488,7 @@ namespace Sheaft.Identity.Controllers
             var user = await _context.Set<AppUser>().FirstOrDefaultAsync(r => r.Id == userId);
             if (user == null)
             {
-                return NotFound("Utilisateur introuvable.");
+                return NotFound($"Utilisateur {userId} introuvable.");
             }
 
             await _userManager.DeleteAsync(user);
@@ -508,10 +509,10 @@ namespace Sheaft.Identity.Controllers
             var user = await _context.Set<AppUser>().FirstOrDefaultAsync(r => r.Id == model.Id);
             if (user == null)
             {
-                return NotFound("Utilisateur introuvable.");
+                return NotFound($"Utilisateur {model.Id} introuvable.");
             }
 
-            var claims = (await _context.UserClaims.Where(c => c.UserId == user.Id)?.ToListAsync(Request.HttpContext.RequestAborted)) ?? new List<IdentityUserClaim<string>>();
+            var claims = (await _context.UserClaims.Where(c => c.UserId == user.Id)?.ToListAsync(HttpContext.RequestAborted)) ?? new List<IdentityUserClaim<string>>();
             var nameChanged = false;
 
             if (!string.IsNullOrWhiteSpace(model.FirstName) && user.FirstName != model.FirstName)
@@ -582,9 +583,9 @@ namespace Sheaft.Identity.Controllers
 
                 foreach (var role in model.Roles)
                 {
-                    var entityRole = await _context.Roles.SingleOrDefaultAsync(r => r.Id == role, Request.HttpContext.RequestAborted);
+                    var entityRole = await _context.Roles.SingleOrDefaultAsync(r => r.Id == role, HttpContext.RequestAborted);
                     if (entityRole == null)
-                        throw new Exception("Le rôle spécifié est introuvable");
+                        return NotFound($"Le rôle {role} est introuvable");
 
                     await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Role, entityRole.NormalizedName));
                 }
