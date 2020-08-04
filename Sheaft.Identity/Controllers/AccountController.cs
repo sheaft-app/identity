@@ -494,9 +494,8 @@ namespace Sheaft.Identity.Controllers
             return Ok();
         }
 
-
         [HttpPut]
-        public async Task<IActionResult> Profile([FromBody] UpdateUserModel model, CancellationToken token)
+        public async Task<IActionResult> Profile([FromBody] UpdateUserModel model)
         {
             if (!IsAuthorized())
                 return Unauthorized();
@@ -512,7 +511,7 @@ namespace Sheaft.Identity.Controllers
                 return NotFound("Utilisateur introuvable.");
             }
 
-            var claims = (await _context.UserClaims.Where(c => c.UserId == user.Id)?.ToListAsync(token)) ?? new List<IdentityUserClaim<string>>();
+            var claims = (await _context.UserClaims.Where(c => c.UserId == user.Id)?.ToListAsync(Request.HttpContext.RequestAborted)) ?? new List<IdentityUserClaim<string>>();
             var nameChanged = false;
 
             if (!string.IsNullOrWhiteSpace(model.FirstName) && user.FirstName != model.FirstName)
@@ -583,7 +582,7 @@ namespace Sheaft.Identity.Controllers
 
                 foreach (var role in model.Roles)
                 {
-                    var entityRole = await _context.Roles.SingleOrDefaultAsync(r => r.Id == role, token);
+                    var entityRole = await _context.Roles.SingleOrDefaultAsync(r => r.Id == role, Request.HttpContext.RequestAborted);
                     if (entityRole == null)
                         throw new Exception("Le rôle spécifié est introuvable");
 
