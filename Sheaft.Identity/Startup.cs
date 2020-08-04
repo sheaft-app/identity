@@ -357,6 +357,7 @@ namespace Sheaft.Identity
                                  }
                              }
                          });
+
                         configContext.SaveChanges();
                     }
 
@@ -494,9 +495,7 @@ namespace Sheaft.Identity
                                  EnableLocalLogin = true,
                                  AllowOfflineAccess = true,
                                  UpdateAccessTokenClaimsOnRefresh = true,
-                                 IncludeJwtId = true,
-                                 AlwaysSendClientClaims = true,
-
+                                 IncludeJwtId = true
                              }
                          });
 
