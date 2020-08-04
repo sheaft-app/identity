@@ -589,6 +589,8 @@ namespace Sheaft.Identity.Controllers
 
                     await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Role, entityRole.NormalizedName));
                 }
+
+                await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Role, _configuration.GetValue<string>("Roles:AppUser:Value")));
             }
 
             if (model.CompanyId.HasValue)
