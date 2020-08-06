@@ -22,7 +22,6 @@ using IdentityServer4.EntityFramework.DbContexts;
 using System.Linq;
 using IdentityServer4.EntityFramework.Entities;
 using System.Collections.Generic;
-using IdentityServer4.Services;
 
 namespace Sheaft.Identity
 {
@@ -197,7 +196,7 @@ namespace Sheaft.Identity
             })
             .AddDeveloperSigningCredential();
 
-            services.AddScoped<IProfileService, ProfileService>();
+            //services.AddScoped<IProfileService, ProfileService>();
             services.AddApplicationInsightsTelemetry();
 
             services.AddLogging(config =>
@@ -221,7 +220,7 @@ namespace Sheaft.Identity
             if (Env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
+                //app.UseDatabaseErrorPage();
 
                 using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
                 {
@@ -387,6 +386,12 @@ namespace Sheaft.Identity
                                 Enabled = true,
                                 Name = "delete",
                                 DisplayName = "Sheaft Delete API"
+                            },
+                            new ApiScope()
+                            {
+                                Enabled = true,
+                                Name = "crud",
+                                DisplayName = "Sheaft CRUD API"
                             }
                         });
 
