@@ -360,45 +360,64 @@ namespace Sheaft.Identity
                         configContext.SaveChanges();
                     }
 
-                    if (!configContext.ApiScopes.Any())
+                    if (!configContext.ApiScopes.Any(c => c.Name == "list"))
                     {
-                        configContext.ApiScopes.AddRange(new List<ApiScope>{
-                            new ApiScope()
-                            {
-                                Enabled = true,
-                                Name = "read",
-                                DisplayName = "Sheaft Read API"
-                            },
-                            new ApiScope()
-                            {
-                                Enabled = true,
-                                Name = "create",
-                                DisplayName = "Sheaft Create API"
-                            },
-                            new ApiScope()
-                            {
-                                Enabled = true,
-                                Name = "update",
-                                DisplayName = "Sheaft Update API"
-                            },
-                            new ApiScope()
-                            {
-                                Enabled = true,
-                                Name = "delete",
-                                DisplayName = "Sheaft Delete API"
-                            },
-                            new ApiScope()
-                            {
-                                Enabled = true,
-                                Name = "crud",
-                                DisplayName = "Sheaft CRUD API"
-                            }
+                        configContext.ApiScopes.Add(new ApiScope()
+                        {
+                            Enabled = true,
+                            Name = "list",
+                            DisplayName = "List Scope"
                         });
-
                         configContext.SaveChanges();
                     }
 
-                    if (!configContext.ApiResources.Any())
+                    if (!configContext.ApiScopes.Any(c => c.Name == "read"))
+                    {
+                        configContext.ApiScopes.Add(new ApiScope()
+                        {
+                            Enabled = true,
+                            Name = "read",
+                            DisplayName = "Read Scope"
+                        });
+                        configContext.SaveChanges();
+                    }
+
+                    if (!configContext.ApiScopes.Any(c => c.Name == "create"))
+                    {
+                        configContext.ApiScopes.Add(new ApiScope()
+                        {
+                            Enabled = true,
+                            Name = "create",
+                            DisplayName = "Create Scope"
+                        });
+                        configContext.SaveChanges();
+                    }
+
+
+                    if (!configContext.ApiScopes.Any(c => c.Name == "update"))
+                    {
+                        configContext.ApiScopes.Add(new ApiScope()
+                        {
+                            Enabled = true,
+                            Name = "update",
+                            DisplayName = "Update Scope"
+                        });
+                        configContext.SaveChanges();
+                    }
+
+                    if (!configContext.ApiScopes.Any(c => c.Name == "delete"))
+                    {
+                        configContext.ApiScopes.Add(new ApiScope()
+                        {
+                            Enabled = true,
+                            Name = "delete",
+                            DisplayName = "Delete Scope"
+                        });
+                        configContext.SaveChanges();
+                    }
+
+
+                    if (configContext.ApiResources.All(c => c.Name != "api"))
                     {
                         configContext.ApiResources.Add(new ApiResource()
                         {
@@ -406,30 +425,52 @@ namespace Sheaft.Identity
                             Name = "api",
                             DisplayName = "Sheaft API",
                             Scopes = new List<ApiResourceScope> {
+                                new ApiResourceScope(){ Scope = "list" },
                                 new ApiResourceScope(){ Scope = "read" },
                                 new ApiResourceScope(){ Scope = "create" },
                                 new ApiResourceScope(){ Scope = "update" },
                                 new ApiResourceScope(){ Scope = "delete" },
-                                new ApiResourceScope(){ Scope = "crud" },
+                                new ApiResourceScope(){ Scope = "crud" }
                             }
                         });
 
                         configContext.SaveChanges();
                     }
 
-                    if (!configContext.Clients.Any())
+                    if (configContext.ApiResources.All(c => c.Name != "manage"))
+                    {
+                        configContext.ApiResources.Add(new ApiResource()
+                        {
+                            Enabled = true,
+                            Name = "manage",
+                            DisplayName = "Sheaft Manage",
+                            Scopes = new List<ApiResourceScope> {
+                                new ApiResourceScope(){ Scope = "list" },
+                                new ApiResourceScope(){ Scope = "read" },
+                                new ApiResourceScope(){ Scope = "create" },
+                                new ApiResourceScope(){ Scope = "update" },
+                                new ApiResourceScope(){ Scope = "delete" },
+                                new ApiResourceScope(){ Scope = "crud" }
+                            }
+                        });
+
+                        configContext.SaveChanges();
+                    }
+
+                    var appName = Configuration.GetValue<string>("Clients:App:Name");
+                    if (configContext.Clients.All(c => c.ClientName != appName))
                     {
                         configContext.Clients.AddRange(new List<Client>
                          {
                              new Client
                              {
-                                 ClientId = Configuration.GetValue<string>("Client:id"),
+                                 ClientId = Configuration.GetValue<string>("Clients:App:Id"),
                                  ClientSecrets = new List<ClientSecret>
                                  {
-                                     new ClientSecret{Value = Configuration.GetValue<string>("Client:secret")}
+                                     new ClientSecret{Value = Configuration.GetValue<string>("Clients:App:Secret")}
                                  },
-                                 ClientName = "Sheaft",
-                                 ClientUri = "https://www.sheaft.com",
+                                 ClientName = appName,
+                                 ClientUri = Configuration.GetValue<string>("Clients:App:Uri"),
                                  RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
@@ -503,9 +544,62 @@ namespace Sheaft.Identity
                                  IncludeJwtId = true
                              }
                          });
+                    }
+
+                    var manageName = Configuration.GetValue<string>("Clients:Manage:Name");
+                    if (configContext.Clients.All(c => c.ClientName != manageName))
+                    {
+                        configContext.Clients.AddRange(new List<Client>
+                         {
+                             new Client
+                             {
+                                 ClientId = Configuration.GetValue<string>("Clients:Manage:Id"),
+                                 ClientSecrets = new List<ClientSecret>
+                                 {
+                                     new ClientSecret{Value = Configuration.GetValue<string>("Clients:Manage:Secret")}
+                                 },
+                                 ClientName = manageName,
+                                 ClientUri = Configuration.GetValue<string>("Clients:Manage:Uri"),
+                                 RequireClientSecret = false,
+                                 AllowAccessTokensViaBrowser = true,
+                                 RequirePkce = true,
+                                 AllowedCorsOrigins = new List<ClientCorsOrigin>() {
+                                     new ClientCorsOrigin { Origin = "https://localhost:5008" },
+                                     new ClientCorsOrigin { Origin = "https://manage.sheaft.com" },
+                                     new ClientCorsOrigin { Origin = "https://sheaft-manage.azurewebsites.net" }
+                                 },
+                                 AllowedScopes = new List<ClientScope>() {
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.OpenId },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.OfflineAccess },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.Email },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.Profile },
+                                     new ClientScope { Scope = JwtClaimTypes.Role }
+                                 },
+                                 RequireConsent = false,
+                                 AllowedGrantTypes = IdentityServer4.Models.GrantTypes.CodeAndClientCredentials.Select(c => new ClientGrantType{ GrantType = c } ).ToList(),
+                                 Enabled = true,
+                                 RedirectUris = new List<ClientRedirectUri>() {
+                                     new ClientRedirectUri { RedirectUri = "https://localhost:5008/signin-oidc" },
+                                     new ClientRedirectUri { RedirectUri = "https://manage.sheaft.com/signin-oidc" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft-manage.azurewebsites.net/signin-oidc" }
+                                 },
+                                 PostLogoutRedirectUris = new List<ClientPostLogoutRedirectUri>() {
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://localhost:5008/signout-oidc" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://manage.sheaft.com/signout-oidc" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://sheaft-manage.azurewebsites.net/signout-oidc" }
+                                 },
+                                 EnableLocalLogin = true,
+                                 AllowOfflineAccess = true,
+                                 UpdateAccessTokenClaimsOnRefresh = true,
+                                 IncludeJwtId = true,
+                                 AlwaysIncludeUserClaimsInIdToken = true,
+                                 AlwaysSendClientClaims = true
+                             }
+                         });
 
                         configContext.SaveChanges();
                     }
+
                 }
             }
             else
@@ -517,6 +611,7 @@ namespace Sheaft.Identity
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
+            app.UseCors(MyAllowSpecificOrigins);
             app.UseRouting();
 
             app.UseIdentityServer();
