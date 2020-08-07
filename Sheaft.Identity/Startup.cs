@@ -259,18 +259,18 @@ namespace Sheaft.Identity
                         authContext.SaveChanges();
                     }
 
-                    var adminEmail = Configuration.GetValue<string>("admin:email");
+                    var adminEmail = Configuration.GetValue<string>("Users:admin:email");
                     if (!authContext.Users.Any(u => u.UserName == adminEmail))
                     {
                         var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
                         var result = um.CreateAsync(new AppUser()
                         {
-                            Id = Configuration.GetValue<string>("admin:id").Replace("-", ""),
+                            Id = Configuration.GetValue<string>("Users:admin:id").Replace("-", ""),
                             UserName = adminEmail,
                             Email = adminEmail,
-                            LastName = Configuration.GetValue<string>("admin:lastname"),
-                            FirstName = Configuration.GetValue<string>("admin:firstname")
-                        }, Configuration.GetValue<string>("admin:password")).Result;
+                            LastName = Configuration.GetValue<string>("Users:admin:lastname"),
+                            FirstName = Configuration.GetValue<string>("Users:admin:firstname")
+                        }, Configuration.GetValue<string>("Users:admin:password")).Result;
 
                         if (result.Succeeded)
                         {
@@ -287,18 +287,18 @@ namespace Sheaft.Identity
                         authContext.SaveChanges();
                     }
 
-                    var supportEmail = Configuration.GetValue<string>("support:email");
+                    var supportEmail = Configuration.GetValue<string>("Users:support:email");
                     if (!authContext.Users.Any(u => u.UserName == supportEmail))
                     {
                         var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
                         var result = um.CreateAsync(new AppUser()
                         {
-                            Id = Configuration.GetValue<string>("support:id").Replace("-", ""),
+                            Id = Configuration.GetValue<string>("Users:support:id").Replace("-", ""),
                             UserName = supportEmail,
                             Email = supportEmail,
-                            LastName = Configuration.GetValue<string>("support:lastname"),
-                            FirstName = Configuration.GetValue<string>("support:firstname")
-                        }, Configuration.GetValue<string>("support:password")).Result;
+                            LastName = Configuration.GetValue<string>("Users:support:lastname"),
+                            FirstName = Configuration.GetValue<string>("Users:support:firstname")
+                        }, Configuration.GetValue<string>("Users:support:password")).Result;
 
                         if (result.Succeeded)
                         {
@@ -470,7 +470,7 @@ namespace Sheaft.Identity
                                      new ClientSecret{Value = Configuration.GetValue<string>("Clients:App:Secret")}
                                  },
                                  ClientName = appName,
-                                 ClientUri = Configuration.GetValue<string>("Clients:App:Uri"),
+                                 ClientUri = "https://app.sheaft.com",
                                  RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
@@ -559,7 +559,7 @@ namespace Sheaft.Identity
                                      new ClientSecret{Value = Configuration.GetValue<string>("Clients:Manage:Secret")}
                                  },
                                  ClientName = manageName,
-                                 ClientUri = Configuration.GetValue<string>("Clients:Manage:Uri"),
+                                 ClientUri = "https://manage.sheaft.com",
                                  RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
