@@ -22,8 +22,10 @@ namespace Sheaft.Identity.ViewModels
 
     public class RegisterInputModel : LoginInputModel
     {
+        [Required(ErrorMessage = "Le prénom est requis.")]
         [DisplayName("Prénom")]
         public string FirstName { get; set; }
+        [Required(ErrorMessage = "Le nom est requis.")]
         [DisplayName("Nom")]
         public string LastName { get; set; }
         [Required(ErrorMessage = "La confirmation du mot de passe est requise.")]

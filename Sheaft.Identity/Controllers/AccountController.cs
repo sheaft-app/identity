@@ -400,11 +400,12 @@ namespace Sheaft.Identity.Controllers
             user = new AppUser()
             {
                 UserName = model.Username,
-                Email = model.Username
+                Email = model.Username,
+                FirstName = model.FirstName,
+                LastName = model.LastName
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
-
             if (!result.Succeeded)
             {
                 ModelState.AddModelError(string.Empty, result.Errors.ToString());
@@ -412,6 +413,9 @@ namespace Sheaft.Identity.Controllers
             }
 
             await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Email, user.Email));
+            await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.FamilyName, user.LastName));
+            await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.GivenName, user.FirstName));
+            await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Name, $"{user.FirstName} {user.LastName}"));
             await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Role, _configuration.GetValue<string>("Roles:Anonymous:value")));
 
             await _userManager.AddToRoleAsync(user, _configuration.GetValue<string>("Roles:AppUser:value"));
@@ -426,13 +430,13 @@ namespace Sheaft.Identity.Controllers
 
             var recipients = new List<EmailAddress>
                 {
-                    new EmailAddress(user.Email, user.FirstName + " " + user.LastName)
+                    new EmailAddress(user.Email, $"{user.FirstName} {user.LastName}")
                 };
 
             msg.AddTos(recipients);
 
             msg.SetTemplateId(_configuration.GetValue<string>("sendgrid:templates:verifyEmailId"));
-            msg.SetTemplateData(new { UserName = user.FirstName + " " + user.LastName, ConfirmEmailLink = url });
+            msg.SetTemplateData(new { UserName = $"{user.FirstName} {user.LastName}", ConfirmEmailLink = url });
 
             var response = await client.SendEmailAsync(msg);
             if ((int)response.StatusCode >= 400)
