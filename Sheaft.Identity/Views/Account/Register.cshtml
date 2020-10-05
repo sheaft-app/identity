@@ -72,7 +72,7 @@
                     }
                     <p class="right-panel-phrase">ou créez un compte local</p>
                     <form asp-route="Register" class="login-form">
-                        @Html.Hidden("returnUrl", Model.ReturnUrl)
+                        @Html.HiddenFor(m => m.ReturnUrl)
                         <partial name="_ValidationSummary" />
                         <fieldset>
                             <input type="text" class="form-control" placeholder="Nom" asp-for="LastName" autofocus>

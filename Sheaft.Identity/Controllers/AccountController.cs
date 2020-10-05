@@ -387,14 +387,16 @@ namespace Sheaft.Identity.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                var vm = await BuildRegisterViewModelAsync(model);
+                return View(vm);
             }
 
             var user = await _context.Set<AppUser>().FirstOrDefaultAsync(r => r.UserName == model.Username);
             if (user != null)
             {
                 ModelState.AddModelError(string.Empty, "Un utilisateur avec cette adresse email existe déjà.");
-                return View(model);
+                var vm = await BuildRegisterViewModelAsync(model);
+                return View(vm);
             }
 
             user = new AppUser()
@@ -409,7 +411,8 @@ namespace Sheaft.Identity.Controllers
             if (!result.Succeeded)
             {
                 ModelState.AddModelError(string.Empty, result.Errors.ToString());
-                return View(model);
+                var vm = await BuildRegisterViewModelAsync(model);
+                return View(vm);
             }
 
             await _userManager.AddClaimAsync(user, new Claim(JwtClaimTypes.Email, user.Email));
@@ -439,12 +442,6 @@ namespace Sheaft.Identity.Controllers
             msg.SetTemplateData(new { UserName = $"{user.FirstName} {user.LastName}", ConfirmEmailLink = url });
 
             var response = await client.SendEmailAsync(msg);
-            if ((int)response.StatusCode >= 400)
-            {
-                ModelState.AddModelError("", "Une erreur est survenue lors de l'envoi de l'email de confirmation.");
-                return View(model);
-            }
-
             return await Login(new LoginInputModel
             {
                 Username = model.Username,
@@ -625,6 +622,16 @@ namespace Sheaft.Identity.Controllers
                 return new List<Claim>();
 
             return existingUserClaims.Select(r => r.ToClaim());
+        }
+
+        private async Task<RegisterViewModel> BuildRegisterViewModelAsync(RegisterInputModel model)
+        {
+            var vm = await BuildRegisterViewModelAsync(model.ReturnUrl);
+            vm.Username = model.Username;
+            vm.FirstName = model.FirstName;
+            vm.LastName = model.LastName;
+            vm.RememberLogin = model.RememberLogin;
+            return vm;
         }
 
         private async Task<RegisterViewModel> BuildRegisterViewModelAsync(string returnUrl)
