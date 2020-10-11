@@ -22,6 +22,9 @@ using IdentityServer4.EntityFramework.DbContexts;
 using System.Linq;
 using IdentityServer4.EntityFramework.Entities;
 using System.Collections.Generic;
+using Amazon.SimpleEmail;
+using RazorLight;
+using Amazon;
 
 namespace Sheaft.Identity
 {
@@ -196,7 +199,14 @@ namespace Sheaft.Identity
             })
             .AddDeveloperSigningCredential();
 
-            //services.AddScoped<IProfileService, ProfileService>();
+            var rootDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
+
+            services.AddScoped<IAmazonSimpleEmailService, AmazonSimpleEmailServiceClient>(_ => new AmazonSimpleEmailServiceClient(Configuration.GetValue<string>("Mailer:ApiId"), Configuration.GetValue<string>("Mailer:ApiKey"), RegionEndpoint.EUCentral1));
+            services.AddScoped<IRazorLightEngine>(_ => new RazorLightEngineBuilder()
+                                                .UseFileSystemProject($"{rootDir.Replace("file:\\", string.Empty)}\\Templates")
+                                                .UseMemoryCachingProvider()
+                                                .Build());
+
             services.AddApplicationInsightsTelemetry();
 
             services.AddLogging(config =>
@@ -204,12 +214,12 @@ namespace Sheaft.Identity
                 config.ClearProviders();
 
                 config.AddConfiguration(Configuration.GetSection("Logging"));
-                config.AddDebug();
                 config.AddEventSourceLogger();
                 config.AddApplicationInsights();
 
                 if (Env.IsDevelopment())
                 {
+                    config.AddDebug();
                     config.AddConsole();
                 }
             });

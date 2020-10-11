@@ -1,4 +1,6 @@
-﻿using IdentityModel;
+﻿using Amazon.SimpleEmail;
+using Amazon.SimpleEmail.Model;
+using IdentityModel;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
@@ -12,9 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
-using SendGrid;
-using SendGrid.Helpers.Errors.Model;
-using SendGrid.Helpers.Mail;
+using RazorLight;
 using Sheaft.Identity.Data;
 using Sheaft.Identity.Extensions;
 using Sheaft.Identity.Models;
@@ -42,6 +42,8 @@ namespace Sheaft.Identity.Controllers
         private readonly AuthDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _accessor;
+        private readonly IAmazonSimpleEmailService _mailer;
+        private readonly IRazorLightEngine _templateEngine;
 
         public AccountController(
             AuthDbContext context,
@@ -52,6 +54,8 @@ namespace Sheaft.Identity.Controllers
             IAuthenticationSchemeProvider schemeProvider,
             IHttpContextAccessor accessor,
             IConfiguration configuration,
+            IAmazonSimpleEmailService mailer,
+            IRazorLightEngine templateEngine,
             IEventService events)
         {
             _context = context;
@@ -63,6 +67,8 @@ namespace Sheaft.Identity.Controllers
             _events = events;
             _configuration = configuration;
             _accessor = accessor;
+            _mailer = mailer;
+            _templateEngine = templateEngine;
         }
 
         private bool IsAuthorized()
@@ -254,7 +260,7 @@ namespace Sheaft.Identity.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -270,24 +276,25 @@ namespace Sheaft.Identity.Controllers
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var url = Url.Action("ResetPassword", "Account", new { userId = user.Id, token = token, returnUrl = model.ReturnUrl }, Url.ActionContext.HttpContext.Request.Scheme);
+                        
+            var msg = new SendEmailRequest();
+            msg.Destination = new Destination
+            {
+                ToAddresses = new List<string> { $"{user.FirstName}<{user.Email}>" }
+            };
 
-            var client = new SendGridClient(_configuration.GetValue<string>("sendgrid:apiKey"));
-            var msg = new SendGridMessage();
+            msg.Source = $"{_configuration.GetValue<string>("mailer:sender:name")}<{_configuration.GetValue<string>("mailer:sender:email")}>";
+            msg.ReturnPath = _configuration.GetValue<string>("mailer:bounces");
+            msg.Message = new Message
+            {
+                Subject = new Content("Réinitialisation de votre mot de passe")
+            };
 
-            msg.SetFrom(new EmailAddress(_configuration.GetValue<string>("sendgrid:sender:email"), _configuration.GetValue<string>("sendgrid:sender:name")));
+            var content = await _templateEngine.CompileRenderAsync("ResetPasswordEvent.cshtml", new { UserName = $"{user.FirstName} {user.LastName}", Url = url });
+            msg.Message.Body = new Body { Html = new Content(content) };
 
-            var recipients = new List<EmailAddress>
-                {
-                    new EmailAddress(user.Email, user.FirstName + " " + user.LastName)
-                };
-
-            msg.AddTos(recipients);
-
-            msg.SetTemplateId(_configuration.GetValue<string>("sendgrid:templates:resetPasswordId"));
-            msg.SetTemplateData(new { UserName = user.FirstName + " " + user.LastName, ResetPasswordLink = url });
-
-            var response = await client.SendEmailAsync(msg);
-            if ((int)response.StatusCode >= 400)
+            var response = await _mailer.SendEmailAsync(msg, cancellationToken);
+            if ((int)response.HttpStatusCode >= 400)
             {
                 ModelState.AddModelError("", "Une erreur est survenue lors de l'envoi de l'email de réinitialisation.");
                 return View(model);
@@ -383,7 +390,7 @@ namespace Sheaft.Identity.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        public async Task<IActionResult> Register(RegisterViewModel model, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -426,22 +433,23 @@ namespace Sheaft.Identity.Controllers
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var url = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = token, returnUrl = model.ReturnUrl }, Url.ActionContext.HttpContext.Request.Scheme);
 
-            var client = new SendGridClient(_configuration.GetValue<string>("sendgrid:apiKey"));
-            var msg = new SendGridMessage();
+            var msg = new SendEmailRequest();
+            msg.Destination = new Destination
+            {
+                ToAddresses = new List<string> { $"{user.FirstName}<{user.Email}>" }
+            };
 
-            msg.SetFrom(new EmailAddress(_configuration.GetValue<string>("sendgrid:sender:email"), _configuration.GetValue<string>("sendgrid:sender:name")));
+            msg.Source = $"{_configuration.GetValue<string>("mailer:sender:name")}<{_configuration.GetValue<string>("mailer:sender:email")}>";
+            msg.ReturnPath = _configuration.GetValue<string>("mailer:bounces");
+            msg.Message = new Message
+            {
+                Subject = new Content("Confirmation de votre adresse mail")
+            };
 
-            var recipients = new List<EmailAddress>
-                {
-                    new EmailAddress(user.Email, $"{user.FirstName} {user.LastName}")
-                };
+            var content = await _templateEngine.CompileRenderAsync("ConfirmEmailEvent.cshtml", new { UserName = $"{user.FirstName} {user.LastName}", Url = url });
+            msg.Message.Body = new Body { Html = new Content(content) };
 
-            msg.AddTos(recipients);
-
-            msg.SetTemplateId(_configuration.GetValue<string>("sendgrid:templates:verifyEmailId"));
-            msg.SetTemplateData(new { UserName = $"{user.FirstName} {user.LastName}", ConfirmEmailLink = url });
-
-            var response = await client.SendEmailAsync(msg);
+            var response = await _mailer.SendEmailAsync(msg, cancellationToken);
             return await Login(new LoginInputModel
             {
                 Username = model.Username,
