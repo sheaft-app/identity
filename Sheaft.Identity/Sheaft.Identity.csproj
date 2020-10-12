@@ -41,14 +41,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Sheaft.Identity.Mailer\Sheaft.Identity.Mailer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="appsettings.Development.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\Templates\ConfirmEmailEvent.cshtml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\Templates\ResetPasswordEvent.cshtml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 </Project>
