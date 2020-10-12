@@ -199,11 +199,9 @@ namespace Sheaft.Identity
             })
             .AddDeveloperSigningCredential();
 
-            var rootDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
-
             services.AddScoped<IAmazonSimpleEmailService, AmazonSimpleEmailServiceClient>(_ => new AmazonSimpleEmailServiceClient(Configuration.GetValue<string>("Mailer:ApiId"), Configuration.GetValue<string>("Mailer:ApiKey"), RegionEndpoint.EUCentral1));
             services.AddScoped<IRazorLightEngine>(_ => new RazorLightEngineBuilder()
-                                                .UseFileSystemProject($"{rootDir.Replace("file:\\", string.Empty)}\\Templates")
+                                                .UseFileSystemProject($"{Env.ContentRootPath}/Templates")
                                                 .UseMemoryCachingProvider()
                                                 .Build());
 
