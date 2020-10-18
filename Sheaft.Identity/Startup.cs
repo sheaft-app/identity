@@ -25,6 +25,9 @@ using System.Collections.Generic;
 using Amazon.SimpleEmail;
 using RazorLight;
 using Amazon;
+using Serilog;
+using Serilog.Events;
+using NewRelic.LogEnrichers.Serilog;
 
 namespace Sheaft.Identity
 {
@@ -39,6 +42,32 @@ namespace Sheaft.Identity
         {
             Env = environment;
             Configuration = configuration;
+
+            var logger = new LoggerConfiguration()
+            .Enrich.WithNewRelicLogsInContext();
+
+            if (Env.IsProduction())
+            {
+                logger = logger
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Information()
+                .WriteTo.Async(a => a.NewRelicLogs(
+                endpointUrl: Configuration.GetValue<string>("NEW_RELIC_LOG_API"),
+                applicationName: Configuration.GetValue<string>("NEW_RELIC_APP_NAME"),
+                licenseKey: Configuration.GetValue<string>("NEW_RELIC_LICENSE_KEY"),
+                insertKey: Configuration.GetValue<string>("NEW_RELIC_INSERT_KEY"),
+                restrictedToMinimumLevel: Configuration.GetValue<LogEventLevel>("NEW_RELIC_LOG_LEVEL"),
+                batchSizeLimit: Configuration.GetValue<int>("NEW_RELIC_BATCH_SIZE")));
+            }
+            else
+            {
+                logger = logger
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .MinimumLevel.Verbose()
+                .WriteTo.Async(a => a.Console());
+            }
+
+            Log.Logger = logger.CreateLogger();
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -205,22 +234,12 @@ namespace Sheaft.Identity
                                                 .UseMemoryCachingProvider()
                                                 .Build());
 
-            services.AddApplicationInsightsTelemetry();
-
             services.AddLogging(config =>
             {
-                config.ClearProviders();
-
-                config.AddConfiguration(Configuration.GetSection("Logging"));
                 config.AddEventSourceLogger();
-                config.AddApplicationInsights();
-
-                if (Env.IsDevelopment())
-                {
-                    config.AddDebug();
-                    config.AddConsole();
-                }
+                config.AddSerilog(dispose: true);
             });
+
         }
 
         public void Configure(IApplicationBuilder app)
@@ -621,6 +640,8 @@ namespace Sheaft.Identity
 
             app.UseCors(MyAllowSpecificOrigins);
             app.UseRouting();
+            
+            app.UseSerilogRequestLogging();
 
             app.UseIdentityServer();
             app.UseAuthorization();
