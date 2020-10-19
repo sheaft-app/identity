@@ -43,28 +43,9 @@ namespace Sheaft.Identity
             Env = environment;
             Configuration = configuration;
 
-            var logger = new LoggerConfiguration()
-            .Enrich.WithNewRelicLogsInContext();
-
-            if (Env.IsProduction())
-            {
-                logger = logger
-                .WriteTo.Async(a => a.NewRelicLogs(
-                endpointUrl: Configuration.GetValue<string>("NEW_RELIC_LOG_API"),
-                applicationName: Configuration.GetValue<string>("NEW_RELIC_APP_NAME"),
-                licenseKey: Configuration.GetValue<string>("NEW_RELIC_LICENSE_KEY"),
-                insertKey: Configuration.GetValue<string>("NEW_RELIC_INSERT_KEY"),
-                restrictedToMinimumLevel: Configuration.GetValue<LogEventLevel>("NEW_RELIC_LOG_LEVEL"),
-                batchSizeLimit: Configuration.GetValue<int>("NEW_RELIC_BATCH_SIZE")));
-            }
-            else
-            {
-                logger = logger
-                .MinimumLevel.Verbose()
-                .WriteTo.Async(a => a.Console());
-            }
-
-            Log.Logger = logger.CreateLogger();
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .CreateLogger();
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -233,10 +214,6 @@ namespace Sheaft.Identity
 
             services.AddLogging(config =>
             {
-                config.ClearProviders();
-
-                config.AddConfiguration(Configuration.GetSection("Logging"));
-                config.AddEventSourceLogger();
                 config.AddSerilog(dispose: true);
             });
         }
