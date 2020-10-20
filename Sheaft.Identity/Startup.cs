@@ -43,9 +43,29 @@ namespace Sheaft.Identity
             Env = environment;
             Configuration = configuration;
 
-            Log.Logger = new LoggerConfiguration()
+            var logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
-                .CreateLogger();
+                .Enrich.WithNewRelicLogsInContext();
+
+            if (Env.IsProduction())
+            {
+                logger = logger
+                    .WriteTo.Async(a => a.NewRelicLogs(
+                        endpointUrl: Configuration.GetValue<string>("NEW_RELIC_LOG_API"),
+                        applicationName: Configuration.GetValue<string>("NEW_RELIC_APP_NAME"),
+                        licenseKey: Configuration.GetValue<string>("NEW_RELIC_LICENSE_KEY"),
+                        insertKey: Configuration.GetValue<string>("NEW_RELIC_INSERT_KEY"),
+                        restrictedToMinimumLevel: Configuration.GetValue<LogEventLevel>("NEW_RELIC_LOG_LEVEL"),
+                        batchSizeLimit: Configuration.GetValue<int>("NEW_RELIC_BATCH_SIZE")
+                    ));
+            }
+            else
+            {
+                logger = logger
+                    .WriteTo.Async(a => a.Console());
+            }
+
+            Log.Logger = logger.CreateLogger();
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -206,9 +226,11 @@ namespace Sheaft.Identity
             })
             .AddDeveloperSigningCredential();
 
+            var rootDir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
+
             services.AddScoped<IAmazonSimpleEmailService, AmazonSimpleEmailServiceClient>(_ => new AmazonSimpleEmailServiceClient(Configuration.GetValue<string>("Mailer:ApiId"), Configuration.GetValue<string>("Mailer:ApiKey"), RegionEndpoint.EUCentral1));
             services.AddScoped<IRazorLightEngine>(_ => new RazorLightEngineBuilder()
-                                                .UseFileSystemProject($"{Env.ContentRootPath}/Templates")
+                                                .UseFileSystemProject($"{(Env.IsDevelopment() ? rootDir.Replace("file:\\", string.Empty) : Env.ContentRootPath)}/Templates")
                                                 .UseMemoryCachingProvider()
                                                 .Build());
 
