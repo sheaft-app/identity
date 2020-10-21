@@ -636,6 +636,9 @@ namespace Sheaft.Identity
             {
                 if (context.Request.Path.Value.StartsWith("/robots"))
                 {
+                    if (NewRelic.Api.Agent.NewRelic.GetAgent().CurrentTransaction != null)
+                        NewRelic.Api.Agent.NewRelic.SetTransactionName("SEO", "Robots");
+
                     context.Response.ContentType = "text/plain";
                     await context.Response.WriteAsync("User-agent: *  \nDisallow: /");
                 }
