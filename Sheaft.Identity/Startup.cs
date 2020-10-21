@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Twitter;
 using Sheaft.Identity.Data;
 using Sheaft.Identity.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using IdentityServer4.EntityFramework.DbContexts;
 using System.Linq;
@@ -632,6 +631,16 @@ namespace Sheaft.Identity
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
+
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path.Value.StartsWith("/robots"))
+                {
+                    context.Response.ContentType = "text/plain";
+                    await context.Response.WriteAsync("User-agent: *  \nDisallow: /");
+                }
+                else await next();
+            });
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
