@@ -27,6 +27,7 @@ using Amazon;
 using Serilog;
 using Serilog.Events;
 using NewRelic.LogEnrichers.Serilog;
+using Microsoft.IdentityModel.Logging;
 
 namespace Sheaft.Identity
 {
@@ -69,6 +70,8 @@ namespace Sheaft.Identity
 
         public void ConfigureServices(IServiceCollection services)
         {
+            IdentityModelEventSource.ShowPII = Configuration.GetValue<bool?>("ShowPII") ?? false;
+
             services.AddCors(options =>
             {
                 options.AddPolicy(MyAllowSpecificOrigins,
