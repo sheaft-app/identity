@@ -5,17 +5,13 @@
 
 trigger:
   batch: true
-  branches:  
-    include:
-      - refs/tags/publish
 
 pool:
   vmImage: "ubuntu-latest"
 
 steps:
   - script: |
-      dotnet restore $(System.DefaultWorkingDirectory)/Sheaft.Identity/Sheaft.Identity.csproj
-      dotnet publish $(System.DefaultWorkingDirectory)/Sheaft.Identity/Sheaft.Identity.csproj --configuration Release --output publish_output/Sheaft.Identity/
+      dotnet publish $(System.DefaultWorkingDirectory)/Sheaft.Identity/Sheaft.Identity.csproj -c Release --output publish_output/Sheaft.Identity/
   - task: ArchiveFiles@2
     displayName: "Archive files"
     inputs:
