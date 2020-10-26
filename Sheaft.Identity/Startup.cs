@@ -170,36 +170,36 @@ namespace Sheaft.Identity
                             return Task.CompletedTask;
                         }
                     };
-                })
-                .AddTwitter("tw", "Twitter", options =>
-                {
-                    options.ConsumerKey = Configuration.GetValue<string>("Authentication:Twitter:clientId");
-                    options.ConsumerSecret = Configuration.GetValue<string>("Authentication:Twitter:secret");
-                    options.RemoteAuthenticationTimeout = TimeSpan.FromSeconds(60);
-                    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-                    options.RetrieveUserDetails = true;
-                    options.CallbackPath = "/signin-twitter";
-                    options.Events = new TwitterEvents
-                    {
-                        OnCreatingTicket = context =>
-                        {
-                            var identity = (ClaimsIdentity)context.Principal.Identity;
-                            var profileImg = context.User.GetProperty("profile_image_url_https").ToString();
-                            var name = context.User.GetProperty("name").ToString();
-
-                            identity.AddClaim(new Claim(JwtClaimTypes.Picture, profileImg));
-                            identity.AddClaim(new Claim(JwtClaimTypes.Name, name));
-
-                            if (name.Split(" ").Length > 1)
-                            {
-                                identity.AddClaim(new Claim(JwtClaimTypes.GivenName, name.Split(" ")[0]));
-                                identity.AddClaim(new Claim(JwtClaimTypes.FamilyName, name.Split(" ")[1]));
-                            }
-
-                            return Task.CompletedTask;
-                        }
-                    };
                 });
+                //.AddTwitter("tw", "Twitter", options =>
+                //{
+                //    options.ConsumerKey = Configuration.GetValue<string>("Authentication:Twitter:clientId");
+                //    options.ConsumerSecret = Configuration.GetValue<string>("Authentication:Twitter:secret");
+                //    options.RemoteAuthenticationTimeout = TimeSpan.FromSeconds(60);
+                //    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+                //    options.RetrieveUserDetails = true;
+                //    options.CallbackPath = "/signin-twitter";
+                //    options.Events = new TwitterEvents
+                //    {
+                //        OnCreatingTicket = context =>
+                //        {
+                //            var identity = (ClaimsIdentity)context.Principal.Identity;
+                //            var profileImg = context.User.GetProperty("profile_image_url_https").ToString();
+                //            var name = context.User.GetProperty("name").ToString();
+
+                //            identity.AddClaim(new Claim(JwtClaimTypes.Picture, profileImg));
+                //            identity.AddClaim(new Claim(JwtClaimTypes.Name, name));
+
+                //            if (name.Split(" ").Length > 1)
+                //            {
+                //                identity.AddClaim(new Claim(JwtClaimTypes.GivenName, name.Split(" ")[0]));
+                //                identity.AddClaim(new Claim(JwtClaimTypes.FamilyName, name.Split(" ")[1]));
+                //            }
+
+                //            return Task.CompletedTask;
+                //        }
+                //    };
+                //});
 
             services.AddIdentityServer(options =>
             {
