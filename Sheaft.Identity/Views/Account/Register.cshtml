@@ -75,11 +75,16 @@
                         @Html.HiddenFor(m => m.ReturnUrl)
                         <partial name="_ValidationSummary" />
                         <fieldset>
-                            <input type="text" class="form-control" placeholder="Nom" asp-for="LastName" autofocus>
-                            <input type="text" class="form-control" placeholder="Prénom" asp-for="FirstName">
-                            <input type="email" class="form-control" placeholder="Adresse email" asp-for="Username">
-                            <input type="password" class="form-control" placeholder="Mot de passe" asp-for="Password" autocomplete="off">
-                            <input type="password" class="form-control" placeholder="Confirmer le mot de passe" asp-for="ConfirmPassword" autocomplete="off">
+                            <label class="form-label" asp-for="LastName"></label>
+                            <input type="text" class="form-control" asp-for="LastName" autofocus>
+                            <label class="form-label" asp-for="FirstName"></label>
+                            <input type="text" class="form-control"  asp-for="FirstName">
+                            <label class="form-label" asp-for="Username"></label>
+                            <input type="email" class="form-control"  asp-for="Username">
+                            <label class="form-label" asp-for="Password"></label>
+                            <input type="password" class="form-control"  asp-for="Password" autocomplete="off">
+                            <label class="form-label" asp-for="ConfirmPassword"></label>
+                            <input type="password" class="form-control"  asp-for="ConfirmPassword" autocomplete="off">
 
                             <button name="button" class="btn btn-primary action">Créer mon compte</button>
                             <a class="right-panel-mobile-button" href="@Url.Action("Login", "Account", new { returnUrl = Model.ReturnUrl })">J'ai déjà un compte</a>

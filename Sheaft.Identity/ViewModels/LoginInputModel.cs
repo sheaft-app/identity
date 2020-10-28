@@ -7,12 +7,11 @@ namespace Sheaft.Identity.ViewModels
 {
     public class LoginInputModel
     {
-
-        [Required(ErrorMessage = "Le nom d'utilisateur est requis")]
-        [DisplayName("Nom d'utilisateur")]
+        [Required(ErrorMessage = "L'adresse email est requise.")]
+        [DisplayName("Adresse email")]
         public string Username { get; set; }
-        [Required(ErrorMessage = "Le mot de passe est requis")]
-        [MinLength(6, ErrorMessage = "Le mot de passe doit comporter au minimum 6 caractères")]
+        [Required(ErrorMessage = "Le mot de passe est requis.")]
+        [MinLength(6, ErrorMessage = "Le mot de passe doit comporter au minimum 6 caractères.")]
         [DisplayName("Mot de passe")]
         public string Password { get; set; }
         public bool RememberLogin { get; set; }

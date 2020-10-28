@@ -72,8 +72,10 @@
                             @Html.Hidden("returnUrl", Model.ReturnUrl)
                             <partial name="_ValidationSummary" />
                             <fieldset>
-                                <input type="email" class="form-control" placeholder="Adresse email" asp-for="Username" autofocus>
-                                <input type="password" class="form-control" placeholder="Mot de passe" asp-for="Password"
+                                <label class="form-label" asp-for="Username"></label>
+                                <input type="email" class="form-control" asp-for="Username" autofocus>
+                                <label class="form-label" asp-for="Password"></label>
+                                <input type="password" class="form-control" asp-for="Password"
                                        autocomplete="off">
                                 <div class="text-center forgot">
                                     <a href="@Url.Action("ForgotPassword", "Account" , new { returnUrl=Model.ReturnUrl,

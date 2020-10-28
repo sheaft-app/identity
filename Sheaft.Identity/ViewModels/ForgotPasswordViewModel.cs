@@ -6,6 +6,8 @@ namespace Sheaft.Identity.ViewModels
     public class ForgotPasswordViewModel
     {
         public string ReturnUrl { get; set; }
+        [DisplayName("Adresse email")]
+        [Required(ErrorMessage = "L'adresse email est requise.")]
         public string UserName { get; set; }
         public bool Sent { get; set; }
     }
@@ -13,8 +15,8 @@ namespace Sheaft.Identity.ViewModels
     public class ResetPasswordViewModel
     {
         public string ReturnUrl { get; set; }
-        [DisplayName("Nom d'utilisateur")]
-        [Required(ErrorMessage = "Le nom d'utilisateur est requis")]
+        [DisplayName("Adresse email")]
+        [Required(ErrorMessage = "L'adresse email est requise.")]
         public string UserName { get; set; }
         [Required(ErrorMessage = "Le mot de passe est requis")]
         [MinLength(6, ErrorMessage = "Le mot de passe doit comporter au minimum 6 caractères")]
