@@ -448,6 +448,17 @@ namespace Sheaft.Identity
                     configContext.SaveChanges();
                 }
 
+                if (!configContext.ApiScopes.Any(c => c.Name == "crud"))
+                {
+                    configContext.ApiScopes.Add(new ApiScope()
+                    {
+                        Enabled = true,
+                        Name = "crud",
+                        DisplayName = "Crud Scope"
+                    });
+                    configContext.SaveChanges();
+                }
+
                 var appName = Configuration.GetValue<string>("Clients:App:Name");
                 if (configContext.Clients.All(c => c.ClientName != appName))
                 {
