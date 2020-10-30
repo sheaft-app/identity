@@ -89,11 +89,10 @@ namespace Sheaft.Identity
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            var connectionString = Configuration.GetConnectionString("IdentityConnection");
             var assembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-
+            var databaseConfig = Configuration.GetSection(DatabaseOptions.SETTING).Get<DatabaseOptions>();
             services.AddDbContext<AuthDbContext>(options =>
-                        options.UseSqlServer(connectionString,
+                        options.UseSqlServer(databaseConfig.ConnectionString,
                                 sql => sql.MigrationsAssembly(assembly).MigrationsHistoryTable("AuthMigrationTable", "ef")));
 
             services.AddIdentity<AppUser, IdentityRole>(c =>
@@ -214,13 +213,13 @@ namespace Sheaft.Identity
             .AddConfigurationStore(options =>
             {
                 options.ConfigureDbContext = builder =>
-                    builder.UseSqlServer(connectionString,
+                    builder.UseSqlServer(databaseConfig.ConnectionString,
                         sql => sql.MigrationsAssembly(assembly).MigrationsHistoryTable("ConfigMigrationTable", "ef"));
             })
             .AddOperationalStore(options =>
             {
                 options.ConfigureDbContext = builder =>
-                    builder.UseSqlServer(connectionString,
+                    builder.UseSqlServer(databaseConfig.ConnectionString,
                         sql => sql.MigrationsAssembly(assembly).MigrationsHistoryTable("GrantsMigrationTable", "ef"));
 
                 options.EnableTokenCleanup = true;
@@ -247,104 +246,110 @@ namespace Sheaft.Identity
             if (Env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //app.UseDatabaseErrorPage();
+                //app.UseDatabaseErrorPage();                
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
+            }
 
-                using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            {
+                var authContext = serviceScope.ServiceProvider.GetService<AuthDbContext>();
+                if (!authContext.AllMigrationsApplied())
                 {
-                    var authContext = serviceScope.ServiceProvider.GetService<AuthDbContext>();
-                    if (!authContext.AllMigrationsApplied())
+                    authContext.Database.Migrate();
+                }
+
+                var configContext = serviceScope.ServiceProvider.GetService<ConfigurationDbContext>();
+                if (!configContext.AllMigrationsApplied())
+                {
+                    configContext.Database.Migrate();
+                }
+
+                var grantContext = serviceScope.ServiceProvider.GetService<PersistedGrantDbContext>();
+                if (!grantContext.AllMigrationsApplied())
+                {
+                    grantContext.Database.Migrate();
+                }
+
+                if (!authContext.Roles.Any())
+                {
+                    var rm = serviceScope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Admin:value")) { Id = Configuration.GetValue<string>("Roles:Admin:id") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Support:value")) { Id = Configuration.GetValue<string>("Roles:Support:id") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:AppUser:value")) { Id = Configuration.GetValue<string>("Roles:AppUser:id") }).Wait();
+                    //specific for sheaft
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:User:value")) { Id = Configuration.GetValue<string>("Roles:User:id") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Consumer:value")) { Id = Configuration.GetValue<string>("Roles:Consumer:id") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Owner:value")) { Id = Configuration.GetValue<string>("Roles:Owner:id") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Producer:value")) { Id = Configuration.GetValue<string>("Roles:Producer:id") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Store:value")) { Id = Configuration.GetValue<string>("Roles:Store:id") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Anonymous:value")) { Id = Configuration.GetValue<string>("Roles:Anonymous:id") }).Wait();
+
+                    authContext.SaveChanges();
+                }
+
+                var adminEmail = Configuration.GetValue<string>("Users:admin:email");
+                if (!authContext.Users.Any(u => u.UserName == adminEmail))
+                {
+                    var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
+                    var result = um.CreateAsync(new AppUser()
                     {
-                        authContext.Database.Migrate();
+                        Id = Configuration.GetValue<string>("Users:admin:id").Replace("-", ""),
+                        UserName = adminEmail,
+                        Email = adminEmail,
+                        LastName = Configuration.GetValue<string>("Users:admin:lastname"),
+                        FirstName = Configuration.GetValue<string>("Users:admin:firstname")
+                    }, Configuration.GetValue<string>("Users:admin:password")).Result;
+
+                    if (result.Succeeded)
+                    {
+                        var admin = authContext.Users.FirstOrDefault(u => u.Email == adminEmail);
+                        um.AddToRoleAsync(admin, Configuration.GetValue<string>("Roles:Admin:value")).Wait();
+
+                        um.AddClaimAsync(admin, new Claim(JwtClaimTypes.Name, $"{admin.FirstName} {admin.LastName}")).Wait();
+                        um.AddClaimAsync(admin, new Claim(JwtClaimTypes.GivenName, admin.FirstName)).Wait();
+                        um.AddClaimAsync(admin, new Claim(JwtClaimTypes.FamilyName, admin.LastName)).Wait();
+                        um.AddClaimAsync(admin, new Claim(JwtClaimTypes.Email, admin.Email)).Wait();
+                        um.AddClaimAsync(admin, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Admin:value"))).Wait();
                     }
 
-                    var configContext = serviceScope.ServiceProvider.GetService<ConfigurationDbContext>();
-                    if (!configContext.AllMigrationsApplied())
+                    authContext.SaveChanges();
+                }
+
+                var supportEmail = Configuration.GetValue<string>("Users:support:email");
+                if (!authContext.Users.Any(u => u.UserName == supportEmail))
+                {
+                    var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
+                    var result = um.CreateAsync(new AppUser()
                     {
-                        configContext.Database.Migrate();
+                        Id = Configuration.GetValue<string>("Users:support:id").Replace("-", ""),
+                        UserName = supportEmail,
+                        Email = supportEmail,
+                        LastName = Configuration.GetValue<string>("Users:support:lastname"),
+                        FirstName = Configuration.GetValue<string>("Users:support:firstname")
+                    }, Configuration.GetValue<string>("Users:support:password")).Result;
+
+                    if (result.Succeeded)
+                    {
+                        var support = authContext.Users.FirstOrDefault(u => u.Email == supportEmail);
+                        um.AddToRoleAsync(support, Configuration.GetValue<string>("Roles:Support:value")).Wait();
+
+                        um.AddClaimAsync(support, new Claim(JwtClaimTypes.Name, $"{support.FirstName} {support.LastName}")).Wait();
+                        um.AddClaimAsync(support, new Claim(JwtClaimTypes.GivenName, support.FirstName)).Wait();
+                        um.AddClaimAsync(support, new Claim(JwtClaimTypes.FamilyName, support.LastName)).Wait();
+                        um.AddClaimAsync(support, new Claim(JwtClaimTypes.Email, support.Email)).Wait();
+                        um.AddClaimAsync(support, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Support:value"))).Wait();
                     }
 
-                    var grantContext = serviceScope.ServiceProvider.GetService<PersistedGrantDbContext>();
-                    if (!grantContext.AllMigrationsApplied())
-                    {
-                        grantContext.Database.Migrate();
-                    }
+                    authContext.SaveChanges();
+                }
 
-                    if (!authContext.Roles.Any())
-                    {
-                        var rm = serviceScope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
-                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Admin:value")) { Id = Configuration.GetValue<string>("Roles:Admin:id") }).Wait();
-                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Support:value")) { Id = Configuration.GetValue<string>("Roles:Support:id") }).Wait();
-                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:AppUser:value")) { Id = Configuration.GetValue<string>("Roles:AppUser:id") }).Wait();
-                        //specific for sheaft
-                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:User:value")) { Id = Configuration.GetValue<string>("Roles:User:id") }).Wait();
-                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Consumer:value")) { Id = Configuration.GetValue<string>("Roles:Consumer:id") }).Wait();
-                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Owner:value")) { Id = Configuration.GetValue<string>("Roles:Owner:id") }).Wait();
-                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Producer:value")) { Id = Configuration.GetValue<string>("Roles:Producer:id") }).Wait();
-                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Store:value")) { Id = Configuration.GetValue<string>("Roles:Store:id") }).Wait();
-                        rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Anonymous:value")) { Id = Configuration.GetValue<string>("Roles:Anonymous:id") }).Wait();
-
-                        authContext.SaveChanges();
-                    }
-
-                    var adminEmail = Configuration.GetValue<string>("Users:admin:email");
-                    if (!authContext.Users.Any(u => u.UserName == adminEmail))
-                    {
-                        var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
-                        var result = um.CreateAsync(new AppUser()
-                        {
-                            Id = Configuration.GetValue<string>("Users:admin:id").Replace("-", ""),
-                            UserName = adminEmail,
-                            Email = adminEmail,
-                            LastName = Configuration.GetValue<string>("Users:admin:lastname"),
-                            FirstName = Configuration.GetValue<string>("Users:admin:firstname")
-                        }, Configuration.GetValue<string>("Users:admin:password")).Result;
-
-                        if (result.Succeeded)
-                        {
-                            var admin = authContext.Users.FirstOrDefault(u => u.Email == adminEmail);
-                            um.AddToRoleAsync(admin, Configuration.GetValue<string>("Roles:Admin:value")).Wait();
-
-                            um.AddClaimAsync(admin, new Claim(JwtClaimTypes.Name, $"{admin.FirstName} {admin.LastName}")).Wait();
-                            um.AddClaimAsync(admin, new Claim(JwtClaimTypes.GivenName, admin.FirstName)).Wait();
-                            um.AddClaimAsync(admin, new Claim(JwtClaimTypes.FamilyName, admin.LastName)).Wait();
-                            um.AddClaimAsync(admin, new Claim(JwtClaimTypes.Email, admin.Email)).Wait();
-                            um.AddClaimAsync(admin, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Admin:value"))).Wait();
-                        }
-
-                        authContext.SaveChanges();
-                    }
-
-                    var supportEmail = Configuration.GetValue<string>("Users:support:email");
-                    if (!authContext.Users.Any(u => u.UserName == supportEmail))
-                    {
-                        var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
-                        var result = um.CreateAsync(new AppUser()
-                        {
-                            Id = Configuration.GetValue<string>("Users:support:id").Replace("-", ""),
-                            UserName = supportEmail,
-                            Email = supportEmail,
-                            LastName = Configuration.GetValue<string>("Users:support:lastname"),
-                            FirstName = Configuration.GetValue<string>("Users:support:firstname")
-                        }, Configuration.GetValue<string>("Users:support:password")).Result;
-
-                        if (result.Succeeded)
-                        {
-                            var support = authContext.Users.FirstOrDefault(u => u.Email == supportEmail);
-                            um.AddToRoleAsync(support, Configuration.GetValue<string>("Roles:Support:value")).Wait();
-
-                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.Name, $"{support.FirstName} {support.LastName}")).Wait();
-                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.GivenName, support.FirstName)).Wait();
-                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.FamilyName, support.LastName)).Wait();
-                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.Email, support.Email)).Wait();
-                            um.AddClaimAsync(support, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Support:value"))).Wait();
-                        }
-
-                        authContext.SaveChanges();
-                    }
-
-                    if (!configContext.IdentityResources.Any())
-                    {
-                        configContext.IdentityResources.AddRange(new List<IdentityResource>
+                if (!configContext.IdentityResources.Any())
+                {
+                    configContext.IdentityResources.AddRange(new List<IdentityResource>
                          {
                              new IdentityResource { Name = IdentityServerConstants.StandardScopes.OpenId, UserClaims = new List<IdentityResourceClaim>{ new IdentityResourceClaim { Type = JwtClaimTypes.Subject} } },
                              new IdentityResource { Name = IdentityServerConstants.StandardScopes.OfflineAccess, UserClaims = new List<IdentityResourceClaim>{ new IdentityResourceClaim { Type = IdentityServerConstants.StandardScopes.OfflineAccess } } },
@@ -384,110 +389,69 @@ namespace Sheaft.Identity
                              }
                          });
 
-                        configContext.SaveChanges();
-                    }
+                    configContext.SaveChanges();
+                }
 
-                    if (!configContext.ApiScopes.Any(c => c.Name == "list"))
+                if (!configContext.ApiScopes.Any(c => c.Name == "list"))
+                {
+                    configContext.ApiScopes.Add(new ApiScope()
                     {
-                        configContext.ApiScopes.Add(new ApiScope()
-                        {
-                            Enabled = true,
-                            Name = "list",
-                            DisplayName = "List Scope"
-                        });
-                        configContext.SaveChanges();
-                    }
+                        Enabled = true,
+                        Name = "list",
+                        DisplayName = "List Scope"
+                    });
+                    configContext.SaveChanges();
+                }
 
-                    if (!configContext.ApiScopes.Any(c => c.Name == "read"))
+                if (!configContext.ApiScopes.Any(c => c.Name == "read"))
+                {
+                    configContext.ApiScopes.Add(new ApiScope()
                     {
-                        configContext.ApiScopes.Add(new ApiScope()
-                        {
-                            Enabled = true,
-                            Name = "read",
-                            DisplayName = "Read Scope"
-                        });
-                        configContext.SaveChanges();
-                    }
+                        Enabled = true,
+                        Name = "read",
+                        DisplayName = "Read Scope"
+                    });
+                    configContext.SaveChanges();
+                }
 
-                    if (!configContext.ApiScopes.Any(c => c.Name == "create"))
+                if (!configContext.ApiScopes.Any(c => c.Name == "create"))
+                {
+                    configContext.ApiScopes.Add(new ApiScope()
                     {
-                        configContext.ApiScopes.Add(new ApiScope()
-                        {
-                            Enabled = true,
-                            Name = "create",
-                            DisplayName = "Create Scope"
-                        });
-                        configContext.SaveChanges();
-                    }
+                        Enabled = true,
+                        Name = "create",
+                        DisplayName = "Create Scope"
+                    });
+                    configContext.SaveChanges();
+                }
 
 
-                    if (!configContext.ApiScopes.Any(c => c.Name == "update"))
+                if (!configContext.ApiScopes.Any(c => c.Name == "update"))
+                {
+                    configContext.ApiScopes.Add(new ApiScope()
                     {
-                        configContext.ApiScopes.Add(new ApiScope()
-                        {
-                            Enabled = true,
-                            Name = "update",
-                            DisplayName = "Update Scope"
-                        });
-                        configContext.SaveChanges();
-                    }
+                        Enabled = true,
+                        Name = "update",
+                        DisplayName = "Update Scope"
+                    });
+                    configContext.SaveChanges();
+                }
 
-                    if (!configContext.ApiScopes.Any(c => c.Name == "delete"))
+                if (!configContext.ApiScopes.Any(c => c.Name == "delete"))
+                {
+                    configContext.ApiScopes.Add(new ApiScope()
                     {
-                        configContext.ApiScopes.Add(new ApiScope()
-                        {
-                            Enabled = true,
-                            Name = "delete",
-                            DisplayName = "Delete Scope"
-                        });
-                        configContext.SaveChanges();
-                    }
+                        Enabled = true,
+                        Name = "delete",
+                        DisplayName = "Delete Scope"
+                    });
+                    configContext.SaveChanges();
+                }
 
-
-                    if (configContext.ApiResources.All(c => c.Name != "api"))
-                    {
-                        configContext.ApiResources.Add(new ApiResource()
-                        {
-                            Enabled = true,
-                            Name = "api",
-                            DisplayName = "Sheaft API",
-                            Scopes = new List<ApiResourceScope> {
-                                new ApiResourceScope(){ Scope = "list" },
-                                new ApiResourceScope(){ Scope = "read" },
-                                new ApiResourceScope(){ Scope = "create" },
-                                new ApiResourceScope(){ Scope = "update" },
-                                new ApiResourceScope(){ Scope = "delete" },
-                                new ApiResourceScope(){ Scope = "crud" }
-                            }
-                        });
-
-                        configContext.SaveChanges();
-                    }
-
-                    if (configContext.ApiResources.All(c => c.Name != "manage"))
-                    {
-                        configContext.ApiResources.Add(new ApiResource()
-                        {
-                            Enabled = true,
-                            Name = "manage",
-                            DisplayName = "Sheaft Manage",
-                            Scopes = new List<ApiResourceScope> {
-                                new ApiResourceScope(){ Scope = "list" },
-                                new ApiResourceScope(){ Scope = "read" },
-                                new ApiResourceScope(){ Scope = "create" },
-                                new ApiResourceScope(){ Scope = "update" },
-                                new ApiResourceScope(){ Scope = "delete" },
-                                new ApiResourceScope(){ Scope = "crud" }
-                            }
-                        });
-
-                        configContext.SaveChanges();
-                    }
-
-                    var appName = Configuration.GetValue<string>("Clients:App:Name");
-                    if (configContext.Clients.All(c => c.ClientName != appName))
-                    {
-                        configContext.Clients.AddRange(new List<Client>
+                var appName = Configuration.GetValue<string>("Clients:App:Name");
+                if (configContext.Clients.All(c => c.ClientName != appName))
+                {
+                    configContext.Clients.AddRange(new List<Client>
                          {
                              new Client
                              {
@@ -571,12 +535,32 @@ namespace Sheaft.Identity
                                  IncludeJwtId = true
                              }
                          });
-                    }
+                }
 
-                    var manageName = Configuration.GetValue<string>("Clients:Manage:Name");
-                    if (configContext.Clients.All(c => c.ClientName != manageName))
+                if (configContext.ApiResources.All(c => c.Name != appName))
+                {
+                    configContext.ApiResources.Add(new ApiResource()
                     {
-                        configContext.Clients.AddRange(new List<Client>
+                        Enabled = true,
+                        Name = appName,
+                        DisplayName = "Sheaft Api",
+                        Scopes = new List<ApiResourceScope> {
+                                new ApiResourceScope(){ Scope = "list" },
+                                new ApiResourceScope(){ Scope = "read" },
+                                new ApiResourceScope(){ Scope = "create" },
+                                new ApiResourceScope(){ Scope = "update" },
+                                new ApiResourceScope(){ Scope = "delete" },
+                                new ApiResourceScope(){ Scope = "crud" }
+                            }
+                    });
+
+                    configContext.SaveChanges();
+                }
+
+                var manageName = Configuration.GetValue<string>("Clients:Manage:Name");
+                if (configContext.Clients.All(c => c.ClientName != manageName))
+                {
+                    configContext.Clients.AddRange(new List<Client>
                          {
                              new Client
                              {
@@ -587,11 +571,10 @@ namespace Sheaft.Identity
                                  },
                                  ClientName = manageName,
                                  ClientUri = "https://manage.sheaft.com",
-                                 RequireClientSecret = false,
+                                 RequireClientSecret = true,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
                                  AllowedCorsOrigins = new List<ClientCorsOrigin>() {
-                                     new ClientCorsOrigin { Origin = "https://localhost:5008" },
                                      new ClientCorsOrigin { Origin = "https://manage.sheaft.com" },
                                      new ClientCorsOrigin { Origin = "https://sheaft-manage.azurewebsites.net" }
                                  },
@@ -606,12 +589,10 @@ namespace Sheaft.Identity
                                  AllowedGrantTypes = IdentityServer4.Models.GrantTypes.CodeAndClientCredentials.Select(c => new ClientGrantType{ GrantType = c } ).ToList(),
                                  Enabled = true,
                                  RedirectUris = new List<ClientRedirectUri>() {
-                                     new ClientRedirectUri { RedirectUri = "https://localhost:5008/signin-oidc" },
                                      new ClientRedirectUri { RedirectUri = "https://manage.sheaft.com/signin-oidc" },
                                      new ClientRedirectUri { RedirectUri = "https://sheaft-manage.azurewebsites.net/signin-oidc" }
                                  },
                                  PostLogoutRedirectUris = new List<ClientPostLogoutRedirectUri>() {
-                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://localhost:5008/signout-oidc" },
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://manage.sheaft.com/signout-oidc" },
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://sheaft-manage.azurewebsites.net/signout-oidc" }
                                  },
@@ -624,15 +605,99 @@ namespace Sheaft.Identity
                              }
                          });
 
-                        configContext.SaveChanges();
-                    }
-
+                    configContext.SaveChanges();
                 }
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
+
+                if (configContext.ApiResources.All(c => c.Name != manageName))
+                {
+                    configContext.ApiResources.Add(new ApiResource()
+                    {
+                        Enabled = true,
+                        Name = manageName,
+                        DisplayName = "Sheaft Manage",
+                        Scopes = new List<ApiResourceScope> {
+                                new ApiResourceScope(){ Scope = "list" },
+                                new ApiResourceScope(){ Scope = "read" },
+                                new ApiResourceScope(){ Scope = "create" },
+                                new ApiResourceScope(){ Scope = "update" },
+                                new ApiResourceScope(){ Scope = "delete" },
+                                new ApiResourceScope(){ Scope = "crud" }
+                            }
+                    });
+
+                    configContext.SaveChanges();
+                }
+
+                var jobName = Configuration.GetValue<string>("Clients:Jobs:Name");
+                if (configContext.Clients.All(c => c.ClientName != jobName))
+                {
+                    configContext.Clients.AddRange(new List<Client>
+                         {
+                             new Client
+                             {
+                                 ClientId = Configuration.GetValue<string>("Clients:Jobs:Id"),
+                                 ClientSecrets = new List<ClientSecret>
+                                 {
+                                     new ClientSecret{Value = Configuration.GetValue<string>("Clients:Jobs:Secret")}
+                                 },
+                                 ClientName = jobName,
+                                 ClientUri = "https://jobs.sheaft.com",
+                                 RequireClientSecret = true,
+                                 AllowAccessTokensViaBrowser = true,
+                                 RequirePkce = true,
+                                 AllowedCorsOrigins = new List<ClientCorsOrigin>() {
+                                     new ClientCorsOrigin { Origin = "https://jobs.sheaft.com" },
+                                     new ClientCorsOrigin { Origin = "https://sheaft-jobs.azurewebsites.net" }
+                                 },
+                                 AllowedScopes = new List<ClientScope>() {
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.OpenId },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.OfflineAccess },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.Email },
+                                     new ClientScope { Scope = IdentityServerConstants.StandardScopes.Profile },
+                                     new ClientScope { Scope = JwtClaimTypes.Role }
+                                 },
+                                 RequireConsent = false,
+                                 AllowedGrantTypes = IdentityServer4.Models.GrantTypes.CodeAndClientCredentials.Select(c => new ClientGrantType{ GrantType = c } ).ToList(),
+                                 Enabled = true,
+                                 RedirectUris = new List<ClientRedirectUri>() {
+                                     new ClientRedirectUri { RedirectUri = "https://jobs.sheaft.com/signin-oidc" },
+                                     new ClientRedirectUri { RedirectUri = "https://sheaft-jobs.azurewebsites.net/signin-oidc" }
+                                 },
+                                 PostLogoutRedirectUris = new List<ClientPostLogoutRedirectUri>() {
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://jobs.sheaft.com/signout-oidc" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://sheaft-jobs.azurewebsites.net/signout-oidc" }
+                                 },
+                                 EnableLocalLogin = true,
+                                 AllowOfflineAccess = true,
+                                 UpdateAccessTokenClaimsOnRefresh = true,
+                                 IncludeJwtId = true,
+                                 AlwaysIncludeUserClaimsInIdToken = true,
+                                 AlwaysSendClientClaims = true
+                             }
+                         });
+
+                    configContext.SaveChanges();
+                }
+
+                if (configContext.ApiResources.All(c => c.Name != jobName))
+                {
+                    configContext.ApiResources.Add(new ApiResource()
+                    {
+                        Enabled = true,
+                        Name = jobName,
+                        DisplayName = "Sheaft Jobs",
+                        Scopes = new List<ApiResourceScope> {
+                                new ApiResourceScope(){ Scope = "list" },
+                                new ApiResourceScope(){ Scope = "read" },
+                                new ApiResourceScope(){ Scope = "create" },
+                                new ApiResourceScope(){ Scope = "update" },
+                                new ApiResourceScope(){ Scope = "delete" },
+                                new ApiResourceScope(){ Scope = "crud" }
+                            }
+                    });
+
+                    configContext.SaveChanges();
+                }
             }
 
             app.Use(async (context, next) =>
@@ -653,7 +718,7 @@ namespace Sheaft.Identity
 
             app.UseCors(MyAllowSpecificOrigins);
             app.UseRouting();
-            
+           
             app.UseSerilogRequestLogging();
 
             app.UseIdentityServer();
