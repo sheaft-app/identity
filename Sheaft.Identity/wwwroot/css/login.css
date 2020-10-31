@@ -1,15 +1,21 @@
+@media (min-width: 769px) {
+    .login-container, .right-panel {
+        display: flex;
+    }
+}
+
 .field-validation-error {
-    color: #dc3545;
     text-align: left !important;
-    width:100%;
-    display:inline-block;
+    width: 100%;
+    display: inline-block;
+    color: #dc3545;
 }
 
-.form input{
-    margin:0;
+.form input {
+    margin: 0;
 }
 
-.form fieldset{
+.form fieldset {
 }
 
 .form-label {
@@ -22,9 +28,16 @@
     display: block;
     text-align: left;
 }
+
 @media (max-width: 768px) {
     .form-label {
         color: #ffffff;
+    }
+
+    .field-validation-error {
+        color: white;
+        background-color: #eb7581;
+        padding-left: 0.5em;
     }
 }
 
@@ -144,7 +157,7 @@ a:active, a:focus {
 }
 
 .forgot {
-    margin-top:10px;
+    margin-top: 10px;
     width: 100%;
     text-align: right;
 }
@@ -171,7 +184,6 @@ a:active, a:focus {
 .login-container {
     width: 100%;
     height: 100%;
-    display: flex;
     justify-content: space-between;
 }
 
@@ -271,7 +283,8 @@ fieldset a {
 
     .right-panel {
         width: 100%;
-        padding: 0;
+        padding: 20px 0 0 0;
+        height: 100%;
     }
 
         .right-panel button {
@@ -286,8 +299,9 @@ fieldset a {
         border-radius: 0;
         box-shadow: none;
         padding: 0;
-        font-size: 1em;
+        font-size: 1.3em;
         color: #e6e6e6 !important;
+        margin-bottom: 20px;
     }
 
     .right-panel img {

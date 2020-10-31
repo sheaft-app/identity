@@ -401,7 +401,7 @@ namespace Sheaft.Identity.Controllers
             var user = await _context.Set<AppUser>().FirstOrDefaultAsync(r => r.UserName == model.Username);
             if (user != null)
             {
-                ModelState.AddModelError(string.Empty, "Un utilisateur avec cette adresse email existe déjà.");
+                ModelState.AddModelError("Username", "Un utilisateur avec cette adresse email existe déjà.");
                 var vm = await BuildRegisterViewModelAsync(model);
                 return View(vm);
             }

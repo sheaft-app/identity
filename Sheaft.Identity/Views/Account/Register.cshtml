@@ -70,9 +70,10 @@
                             </p>
                         </div>
                     }
-                    <p class="right-panel-phrase">ou créez un compte local</p>
+                    <p class="right-panel-title text-center">ou créez un compte local</p>
                     <form asp-route="Register" class="login-form">
                         @Html.HiddenFor(m => m.ReturnUrl)
+                        @Html.ValidationSummary(true, string.Empty, new { @class = "text-danger" })
                         <fieldset>
                             <label class="form-label" asp-for="LastName"></label>
                             <input type="text" class="form-control" asp-for="LastName" autofocus>
@@ -89,7 +90,7 @@
                             <label class="form-label" asp-for="ConfirmPassword"></label>
                             <input type="password" class="form-control" asp-for="ConfirmPassword" autocomplete="off">
                             @Html.ValidationMessageFor(model => model.ConfirmPassword, string.Empty)
-                            <br/>
+                            <br />
                             <button name="button" class="btn btn-primary action">Créer mon compte</button>
                             <a class="right-panel-mobile-button" href="@Url.Action("Login", "Account", new { returnUrl = Model.ReturnUrl })">J'ai déjà un compte</a>
                         </fieldset>

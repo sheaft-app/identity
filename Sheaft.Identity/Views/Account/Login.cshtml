@@ -41,7 +41,7 @@
                                                    asp-controller="External"
                                                    asp-action="Challenge"
                                                    asp-route-scheme="@provider.AuthenticationScheme"
-                                                   asp-route-returnUrl="@Model.ReturnUrl">                                          
+                                                   asp-route-returnUrl="@Model.ReturnUrl">
 
 
                                                     @if (provider.DisplayName == "Microsoft")
@@ -64,12 +64,13 @@
                                                     }
                                                 </a>
                                             </li>
-                                            }
-                                        </ul>
+                                        }
+                                    </ul>
                                 </div>
                             }
-                            <p class="right-panel-phrase">ou utilisez votre compte local</p>
+                            <p class="right-panel-title text-center">ou utilisez votre compte local</p>
                             @Html.Hidden("returnUrl", Model.ReturnUrl)
+                            @Html.ValidationSummary(true, string.Empty, new { @class = "text-danger" })
                             <fieldset>
                                 <label class="form-label" asp-for="Username"></label>
                                 <input type="email" class="form-control" asp-for="Username" autofocus>
