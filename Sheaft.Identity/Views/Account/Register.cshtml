@@ -73,19 +73,23 @@
                     <p class="right-panel-phrase">ou créez un compte local</p>
                     <form asp-route="Register" class="login-form">
                         @Html.HiddenFor(m => m.ReturnUrl)
-                        <partial name="_ValidationSummary" />
                         <fieldset>
                             <label class="form-label" asp-for="LastName"></label>
                             <input type="text" class="form-control" asp-for="LastName" autofocus>
+                            @Html.ValidationMessageFor(model => model.LastName, string.Empty)
                             <label class="form-label" asp-for="FirstName"></label>
-                            <input type="text" class="form-control"  asp-for="FirstName">
+                            <input type="text" class="form-control" asp-for="FirstName">
+                            @Html.ValidationMessageFor(model => model.FirstName, string.Empty)
                             <label class="form-label" asp-for="Username"></label>
-                            <input type="email" class="form-control"  asp-for="Username">
+                            <input type="email" class="form-control" asp-for="Username">
+                            @Html.ValidationMessageFor(model => model.Username, string.Empty)
                             <label class="form-label" asp-for="Password"></label>
-                            <input type="password" class="form-control"  asp-for="Password" autocomplete="off">
+                            <input type="password" class="form-control" asp-for="Password" autocomplete="off">
+                            @Html.ValidationMessageFor(model => model.Password, string.Empty)
                             <label class="form-label" asp-for="ConfirmPassword"></label>
-                            <input type="password" class="form-control"  asp-for="ConfirmPassword" autocomplete="off">
-
+                            <input type="password" class="form-control" asp-for="ConfirmPassword" autocomplete="off">
+                            @Html.ValidationMessageFor(model => model.ConfirmPassword, string.Empty)
+                            <br/>
                             <button name="button" class="btn btn-primary action">Créer mon compte</button>
                             <a class="right-panel-mobile-button" href="@Url.Action("Login", "Account", new { returnUrl = Model.ReturnUrl })">J'ai déjà un compte</a>
                         </fieldset>

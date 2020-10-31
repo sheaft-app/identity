@@ -1,4 +1,19 @@
+.field-validation-error {
+    color: #dc3545;
+    text-align: left !important;
+    width:100%;
+    display:inline-block;
+}
+
+.form input{
+    margin:0;
+}
+
+.form fieldset{
+}
+
 .form-label {
+    margin-top: 10px;
     letter-spacing: 0.025em;
     text-transform: uppercase;
     font-size: .75rem;
@@ -129,6 +144,7 @@ a:active, a:focus {
 }
 
 .forgot {
+    margin-top:10px;
     width: 100%;
     text-align: right;
 }

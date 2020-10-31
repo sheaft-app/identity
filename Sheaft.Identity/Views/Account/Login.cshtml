@@ -70,13 +70,14 @@
                             }
                             <p class="right-panel-phrase">ou utilisez votre compte local</p>
                             @Html.Hidden("returnUrl", Model.ReturnUrl)
-                            <partial name="_ValidationSummary" />
                             <fieldset>
                                 <label class="form-label" asp-for="Username"></label>
                                 <input type="email" class="form-control" asp-for="Username" autofocus>
+                                @Html.ValidationMessageFor(model => model.Username, string.Empty)
                                 <label class="form-label" asp-for="Password"></label>
-                                <input type="password" class="form-control" asp-for="Password"
-                                       autocomplete="off">
+                                <input type="password" class="form-control" asp-for="Password" autocomplete="off">
+                                @Html.ValidationMessageFor(model => model.Password, string.Empty)
+                                <br />
                                 <div class="text-center forgot">
                                     <a href="@Url.Action("ForgotPassword", "Account" , new { returnUrl=Model.ReturnUrl,
                                         username=Model.Username })">J'ai oublié mon mot de passe</a>
