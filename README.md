@@ -1,14 +1,14 @@
 # Sheaft Identity (basé sur IdentityServer4)
 
-Ce projet permet de gérer les comptes utilisateurs de la plateforme Sheaft, il est configurée pour permettre la connexion via un compte local (créer sur https://auth.sheaft.com) ou via un compte externe (Facebook, Twitter, Google et Microsoft).
+Ce projet permet de gérer les comptes utilisateurs de la plateforme Sheaft, il est configurée pour permettre la connexion via un compte local (créer sur https://auth.sheaft.com) ou via un compte externe (Facebook, Google et Microsoft).
 
 ## Pré-requis
 
 - Entity Framework Core CLI: https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/dotnet 
-- Un container SQL docker avec l'image suivante: "docker run --name identity -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=##REPLACE##' -p 1435:1433 -d mcr.microsoft.com/mssql/server:2019-latest". Le port docker est redirigé sur 1435 pour ne pas interférer avec un serveur SQL déjà présent sur la machine.
+- Un container SQL docker avec l'image suivante: "docker run --name app -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=##REPLACE##' -p 1434:1433 -d mcr.microsoft.com/mssql/server:2019-latest". Le port docker est redirigé sur 1434 pour ne pas interférer avec un serveur SQL déjà présent sur la machine.
 - SQLLocalDb/Express si vous possédez déjà une instance configurée et ne souhaitez pas utiliser docker (pensez à mettre à jour le port dans le fichier appsettings.json).
 - dotnet core 3.1 : https://dotnet.microsoft.com/download/dotnet-core/3.1
-- Un compte Sendgrid: https://sendgrid.com/pricing (il faudra créer 2 templates, ResetPassword et VerifyEmail et renseigner les id correspondant dans appsettings.json).
+- Un compte Amazon SES: https://aws.amazon.com/fr/ses/
 - Des providers de connexion externe.
 
 ## Enpoints appelés par l'api de sheaft
