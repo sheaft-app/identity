@@ -33,8 +33,10 @@
                                 @foreach (var provider in Model.VisibleExternalProviders.OrderBy(c => c.DisplayName))
                                 {
                                     <li>
-                                        <a class="btn btn-default external-a" asp-controller="External" asp-action="Challenge"
-                                           asp-route-provider="@provider.AuthenticationScheme"
+                                        <a class="btn btn-default external-a"
+                                           asp-controller="External"
+                                           asp-action="Challenge"
+                                           asp-route-scheme="@provider.AuthenticationScheme"
                                            asp-route-returnUrl="@Model.ReturnUrl">
 
                                             @if (provider.DisplayName == "Microsoft")
