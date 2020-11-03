@@ -582,7 +582,7 @@ namespace Sheaft.Identity
                                  },
                                  ClientName = manageName,
                                  ClientUri = "https://manage.sheaft.com",
-                                 RequireClientSecret = true,
+                                 RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
                                  AllowedCorsOrigins = new List<ClientCorsOrigin>() {
@@ -653,7 +653,7 @@ namespace Sheaft.Identity
                                  },
                                  ClientName = jobName,
                                  ClientUri = "https://jobs.sheaft.com",
-                                 RequireClientSecret = true,
+                                 RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
                                  AllowedCorsOrigins = new List<ClientCorsOrigin>() {
