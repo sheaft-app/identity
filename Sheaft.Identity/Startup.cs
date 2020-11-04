@@ -347,6 +347,149 @@ namespace Sheaft.Identity
                     authContext.SaveChanges();
                 }
 
+                if (Env.IsDevelopment())
+                {
+                    var prod1Email = "contact@prod1.xyz";
+                    if (!authContext.Users.Any(u => u.UserName == prod1Email))
+                    {
+                        var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
+                        var user = new AppUser()
+                        {
+                            Id = "5a8f0ae2b70147f0a8efe7c2365a72eb",
+                            UserName = prod1Email,
+                            Email = prod1Email,
+                            LastName = "Piquet",
+                            FirstName = "Arnold"
+                        };
+
+                        var result = um.CreateAsync(user, "password").Result;
+
+                        if (result.Succeeded)
+                        {
+                            var userCreated = authContext.Users.FirstOrDefault(u => u.Email == user.Email);
+
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:Producer:value")).Wait();
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:Owner:value")).Wait();
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:AppUser:value")).Wait();
+
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Name, $"La Ferme des Piquets")).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.GivenName, user.FirstName)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.FamilyName, user.LastName)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Email, user.Email)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Owner:value"))).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:AppUser:value"))).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Producer:value"))).Wait();
+                        }
+
+                        authContext.SaveChanges();
+                    }
+
+                    var prod2Email = "contact@prod2.xyz";
+                    if (!authContext.Users.Any(u => u.UserName == prod2Email))
+                    {
+                        var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
+                        var user = new AppUser()
+                        {
+                            Id = "442e31e3eea94aa0b7413245ed1c6f2f",
+                            UserName = prod2Email,
+                            Email = prod2Email,
+                            LastName = "Fotdakor",
+                            FirstName = "Peter"
+                        };
+
+                        var result = um.CreateAsync(user, "password").Result;
+
+                        if (result.Succeeded)
+                        {
+                            var userCreated = authContext.Users.FirstOrDefault(u => u.Email == user.Email);
+
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:Producer:value")).Wait();
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:Owner:value")).Wait();
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:AppUser:value")).Wait();
+
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Name, $"La ferme pas d'accord")).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.GivenName, user.FirstName)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.FamilyName, user.LastName)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Email, user.Email)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Owner:value"))).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:AppUser:value"))).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Producer:value"))).Wait();
+                        }
+
+                        authContext.SaveChanges();
+                    }
+
+                    var mag1Email = "contact@mag1.xyz";
+                    if (!authContext.Users.Any(u => u.UserName == mag1Email))
+                    {
+                        var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
+                        var user = new AppUser()
+                        {
+                            Id = "28491432175442859f675386a898a48f",
+                            UserName = mag1Email,
+                            Email = mag1Email,
+                            LastName = "Debussy",
+                            FirstName = "Elia"
+                        };
+
+                        var result = um.CreateAsync(user, "password").Result;
+
+                        if (result.Succeeded)
+                        {
+                            var userCreated = authContext.Users.FirstOrDefault(u => u.Email == user.Email);
+
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:Store:value")).Wait();
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:Owner:value")).Wait();
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:AppUser:value")).Wait();
+
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Name, $"O'local")).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.GivenName, user.FirstName)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.FamilyName, user.LastName)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Email, user.Email)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Owner:value"))).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:AppUser:value"))).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Store:value"))).Wait();
+                        }
+
+                        authContext.SaveChanges();
+                    }
+
+                    var mag2Email = "contact@mag2.xyz";
+                    if (!authContext.Users.Any(u => u.UserName == mag2Email))
+                    {
+                        var um = serviceScope.ServiceProvider.GetService<UserManager<AppUser>>();
+                        var user = new AppUser()
+                        {
+                            Id = "0eafd299d0e64a63af8d6d154db96f55",
+                            UserName = mag2Email,
+                            Email = mag2Email,
+                            LastName = "Syntax",
+                            FirstName = "John"
+                        };
+
+                        var result = um.CreateAsync(user, "password").Result;
+
+                        if (result.Succeeded)
+                        {
+                            var userCreated = authContext.Users.FirstOrDefault(u => u.Email == user.Email);
+
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:Store:value")).Wait();
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:Owner:value")).Wait();
+                            um.AddToRoleAsync(userCreated, Configuration.GetValue<string>("Roles:AppUser:value")).Wait();
+
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Name, $"Mes p'tits plats")).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.GivenName, user.FirstName)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.FamilyName, user.LastName)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Email, user.Email)).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Owner:value"))).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:AppUser:value"))).Wait();
+                            um.AddClaimAsync(userCreated, new Claim(JwtClaimTypes.Role, Configuration.GetValue<string>("Roles:Store:value"))).Wait();
+                        }
+
+                        authContext.SaveChanges();
+                    }
+                }
+
                 if (!configContext.IdentityResources.Any())
                 {
                     configContext.IdentityResources.AddRange(new List<IdentityResource>
