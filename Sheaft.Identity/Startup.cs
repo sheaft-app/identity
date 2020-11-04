@@ -277,16 +277,16 @@ namespace Sheaft.Identity
                 if (!authContext.Roles.Any())
                 {
                     var rm = serviceScope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
-                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Admin:value")) { Id = Configuration.GetValue<string>("Roles:Admin:id") }).Wait();
-                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Support:value")) { Id = Configuration.GetValue<string>("Roles:Support:id") }).Wait();
-                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:AppUser:value")) { Id = Configuration.GetValue<string>("Roles:AppUser:id") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Admin:value")) { Id = Configuration.GetValue<Guid>("Roles:Admin:id").ToString("D") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Support:value")) { Id = Configuration.GetValue<Guid>("Roles:Support:id").ToString("D") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:AppUser:value")) { Id = Configuration.GetValue<Guid>("Roles:AppUser:id").ToString("D") }).Wait();
                     //specific for sheaft
-                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:User:value")) { Id = Configuration.GetValue<string>("Roles:User:id") }).Wait();
-                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Consumer:value")) { Id = Configuration.GetValue<string>("Roles:Consumer:id") }).Wait();
-                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Owner:value")) { Id = Configuration.GetValue<string>("Roles:Owner:id") }).Wait();
-                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Producer:value")) { Id = Configuration.GetValue<string>("Roles:Producer:id") }).Wait();
-                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Store:value")) { Id = Configuration.GetValue<string>("Roles:Store:id") }).Wait();
-                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Anonymous:value")) { Id = Configuration.GetValue<string>("Roles:Anonymous:id") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:User:value")) { Id = Configuration.GetValue<Guid>("Roles:User:id").ToString("D") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Consumer:value")) { Id = Configuration.GetValue<Guid>("Roles:Consumer:id").ToString("D") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Owner:value")) { Id = Configuration.GetValue<Guid>("Roles:Owner:id").ToString("D") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Producer:value")) { Id = Configuration.GetValue<Guid>("Roles:Producer:id").ToString("D") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Store:value")) { Id = Configuration.GetValue<Guid>("Roles:Store:id").ToString("D") }).Wait();
+                    rm.CreateAsync(new IdentityRole(Configuration.GetValue<string>("Roles:Anonymous:value")) { Id = Configuration.GetValue<Guid>("Roles:Anonymous:id").ToString("D") }).Wait();
 
                     authContext.SaveChanges();
                 }
