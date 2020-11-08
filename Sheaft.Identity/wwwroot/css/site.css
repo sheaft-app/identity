@@ -1,4 +1,9 @@
-﻿body {
+﻿.error-page .content {
+    margin: auto !important;
+    padding:0;
+}
+
+body {
     height: 100vh;
     background-color: #fbfbfb;
     font-family: "Roboto", sans-serif;

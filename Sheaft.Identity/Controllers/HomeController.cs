@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Sheaft.Identity.Security;
 using Sheaft.Identity.ViewModels;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Sheaft.Identity.Controllers
 {
@@ -39,10 +40,9 @@ namespace Sheaft.Identity.Controllers
         /// <summary>
         /// Shows the error page
         /// </summary>
-        public async Task<IActionResult> Error(string errorId)
+        public async Task<IActionResult> Error(string errorId, string errorMessage = null)
         {
             var vm = new ErrorViewModel();
-
             // retrieve error details from identityserver
             var message = await _interaction.GetErrorContextAsync(errorId);
             if (message != null)
@@ -55,7 +55,12 @@ namespace Sheaft.Identity.Controllers
                     message.ErrorDescription = null;
                 }
             }
+            else
+            {
+                vm.Error = new IdentityServer4.Models.ErrorMessage { Error = HttpUtility.UrlDecode(errorMessage), RequestId = HttpContext.TraceIdentifier };
+            }
 
+            _logger.LogError(vm.Error.Error);
             return View("Error", vm);
         }
     }

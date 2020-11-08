@@ -26,6 +26,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Sheaft.Identity.Controllers
 {
@@ -268,7 +269,7 @@ namespace Sheaft.Identity.Controllers
             }
 
             var user = await _userManager.FindByEmailAsync(model.UserName);
-            if (user == null || !user.EmailConfirmed)
+            if (user == null)
             {
                 ModelState.AddModelError("", "Utilisateur introuvable");
                 return View(model);
@@ -308,17 +309,18 @@ namespace Sheaft.Identity.Controllers
         public async Task<IActionResult> ConfirmEmail(string userId, string token, string returnUrl = null)
         {
             if (userId == null || token == null)
-            {
-                return View("Error");
-            }
+                return RedirectToAction("Error", "Home", new { errorMessage = HttpUtility.UrlEncode("Le lien de confirmation est invalide.") });
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
-                throw new Exception("Utilisateur introuvable, le lien que vous avez utilisé est peut-être invalide, réessayer de relancer la procédure de vérification d'email ou contactez notre support.");
+                return RedirectToAction("Error", "Home", new { errorMessage = HttpUtility.UrlEncode("Utilisateur introuvable, le lien que vous avez utilisé est peut-être invalide.") });
+
+            if (user.EmailConfirmed)
+                return View();
 
             var result = await _userManager.ConfirmEmailAsync(user, token);
             if (!result.Succeeded)
-                throw new Exception("Le code de vérification est invalide ou expiré, réessayer de relancer la procédure de vérification d'email ou contactez notre support.");
+                return RedirectToAction("Error", "Home", new { errorMessage = HttpUtility.UrlEncode("Le code de vérification est invalide ou expiré.") });
 
             return View();
         }
@@ -328,13 +330,11 @@ namespace Sheaft.Identity.Controllers
         public async Task<IActionResult> ResetPassword(string userId, string token, string returnUrl = null)
         {
             if (userId == null || token == null)
-            {
-                return View("Error");
-            }
+                return RedirectToAction("Error", "Home", new { errorMessage = HttpUtility.UrlEncode("Le lien de réinitialisation de mot de passe est invalide.") });
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
-                throw new Exception("Utilisateur introuvable, le lien que vous avez utilisé est peut-être invalide, réessayer de relancer la procédure de récupération de mot de passe ou contactez notre support.");
+                return RedirectToAction("Error", "Home", new { errorMessage = HttpUtility.UrlEncode("Utilisateur introuvable, le lien que vous avez utilisé est peut-être invalide.") });
 
             var vm = new ResetPasswordViewModel
             {
