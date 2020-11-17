@@ -621,7 +621,9 @@ namespace Sheaft.Identity
                                  RequirePkce = true,
                                  AllowedCorsOrigins = new List<ClientCorsOrigin>() {
                                      new ClientCorsOrigin { Origin = "http://localhost:4200" },
+                                     new ClientCorsOrigin { Origin = "http://localhost:5002" },
                                      new ClientCorsOrigin { Origin = "https://localhost:5003" },
+                                     new ClientCorsOrigin { Origin = "http://localhost:5009" },
                                      new ClientCorsOrigin { Origin = "https://localhost:5010" }
                                  },
                                  AllowedScopes = new List<ClientScope>() {
@@ -694,7 +696,8 @@ namespace Sheaft.Identity
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
                                  AllowedCorsOrigins = new List<ClientCorsOrigin>() {
-                                     new ClientCorsOrigin { Origin = "https://localhost:5008" }
+                                     new ClientCorsOrigin { Origin = "https://localhost:5008" },
+                                     new ClientCorsOrigin { Origin = "http://localhost:5007" },
                                  },
                                  AllowedScopes = new List<ClientScope>() {
                                      new ClientScope { Scope = IdentityServerConstants.StandardScopes.OpenId },
@@ -708,9 +711,11 @@ namespace Sheaft.Identity
                                  Enabled = true,
                                  RedirectUris = new List<ClientRedirectUri>() {
                                      new ClientRedirectUri { RedirectUri = "https://localhost:5008/signin-oidc" },
+                                     new ClientRedirectUri { RedirectUri = "http://localhost:5007/signin-oidc" },
                                  },
                                  PostLogoutRedirectUris = new List<ClientPostLogoutRedirectUri>() {
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://localhost:5008/signout-oidc" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:5007/signout-oidc" },
                                  },
                                  EnableLocalLogin = true,
                                  AllowOfflineAccess = true,
@@ -763,6 +768,7 @@ namespace Sheaft.Identity
                                  RequirePkce = true,
                                  AllowedCorsOrigins = new List<ClientCorsOrigin>() {
                                      new ClientCorsOrigin { Origin = "https://localhost:5020" },
+                                     new ClientCorsOrigin { Origin = "http://localhost:5019" },
                                  },
                                  AllowedScopes = new List<ClientScope>() {
                                      new ClientScope { Scope = IdentityServerConstants.StandardScopes.OpenId },
@@ -776,9 +782,11 @@ namespace Sheaft.Identity
                                  Enabled = true,
                                  RedirectUris = new List<ClientRedirectUri>() {
                                      new ClientRedirectUri { RedirectUri = "https://localhost:5020/signin-oidc" },
+                                     new ClientRedirectUri { RedirectUri = "http://localhost:5019/signin-oidc" },
                                  },
                                  PostLogoutRedirectUris = new List<ClientPostLogoutRedirectUri>() {
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://localhost:5020/signout-oidc" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:5019/signout-oidc" },
                                  },
                                  EnableLocalLogin = true,
                                  AllowOfflineAccess = true,
