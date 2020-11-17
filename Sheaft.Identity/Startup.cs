@@ -250,6 +250,7 @@ namespace Sheaft.Identity
             }
             else
             {
+                app.UseHttpsRedirection();
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
@@ -834,7 +835,6 @@ namespace Sheaft.Identity
                 else await next();
             });
 
-            app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseCors(MyAllowSpecificOrigins);
