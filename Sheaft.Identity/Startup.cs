@@ -230,10 +230,18 @@ namespace Sheaft.Identity
             var rootDir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
 
             services.AddScoped<IAmazonSimpleEmailService, AmazonSimpleEmailServiceClient>(_ => new AmazonSimpleEmailServiceClient(Configuration.GetValue<string>("Mailer:ApiId"), Configuration.GetValue<string>("Mailer:ApiKey"), RegionEndpoint.EUCentral1));
-            services.AddScoped<IRazorLightEngine>(_ => new RazorLightEngineBuilder()
-                                                .UseFileSystemProject($"{(Env.IsDevelopment() ? rootDir.Replace("file:\\", string.Empty) : Env.ContentRootPath)}/Templates")
-                                                .UseMemoryCachingProvider()
-                                                .Build());
+
+            try
+            {
+                services.AddScoped<IRazorLightEngine>(_ => new RazorLightEngineBuilder()
+                                                    .UseFileSystemProject($"{(Env.IsDevelopment() ? rootDir.Replace("file:\\", string.Empty).Replace("file:/", string.Empty) : Env.ContentRootPath)}/Templates")
+                                                    .UseMemoryCachingProvider()
+                                                    .Build());
+            }
+            catch(Exception e)
+            {
+                Log.Logger.Error(e, e.Message);
+            }
 
             services.AddLogging(config =>
             {
