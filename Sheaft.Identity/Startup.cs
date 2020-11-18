@@ -223,25 +223,19 @@ namespace Sheaft.Identity
                         sql => sql.MigrationsAssembly(assembly).MigrationsHistoryTable("GrantsMigrationTable", "ef"));
 
                 options.EnableTokenCleanup = true;
-                options.TokenCleanupInterval = 30;
+                options.TokenCleanupInterval = 3600;
             })
             .AddDeveloperSigningCredential();
 
-            var rootDir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
-
             services.AddScoped<IAmazonSimpleEmailService, AmazonSimpleEmailServiceClient>(_ => new AmazonSimpleEmailServiceClient(Configuration.GetValue<string>("Mailer:ApiId"), Configuration.GetValue<string>("Mailer:ApiKey"), RegionEndpoint.EUCentral1));
 
-            try
-            {
-                services.AddScoped<IRazorLightEngine>(_ => new RazorLightEngineBuilder()
-                                                    .UseFileSystemProject($"{(Env.IsDevelopment() ? rootDir.Replace("file:\\", string.Empty).Replace("file:/", string.Empty) : Env.ContentRootPath)}/Templates")
-                                                    .UseMemoryCachingProvider()
-                                                    .Build());
-            }
-            catch(Exception e)
-            {
-                Log.Logger.Error(e, e.Message);
-            }
+            services.AddScoped<IRazorLightEngine>(_ => {
+                var rootDir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
+                return new RazorLightEngineBuilder()
+                .UseFileSystemProject($"{rootDir.Replace("file:\\", string.Empty).Replace("file:", string.Empty)}/Templates")
+                .UseMemoryCachingProvider()
+                .Build();
+            });
 
             services.AddLogging(config =>
             {
