@@ -248,7 +248,13 @@ namespace Sheaft.Identity
             if (Env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //app.UseDatabaseErrorPage();                
+                //app.UseDatabaseErrorPage();       
+
+                app.UseCookiePolicy(new CookiePolicyOptions
+                {
+                    MinimumSameSitePolicy = SameSiteMode.Lax,
+                    Secure = CookieSecurePolicy.SameAsRequest
+                });
             }
             else
             {
@@ -694,7 +700,7 @@ namespace Sheaft.Identity
                                      new ClientSecret{Value = Configuration.GetValue<string>("Clients:Manage:Secret")}
                                  },
                                  ClientName = manageName,
-                                 ClientUri = "https://localhost:5008",
+                                 ClientUri = "http://localhost:5007",
                                  RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
@@ -765,7 +771,7 @@ namespace Sheaft.Identity
                                      new ClientSecret{Value = Configuration.GetValue<string>("Clients:Jobs:Secret")}
                                  },
                                  ClientName = jobName,
-                                 ClientUri = "https://localhost:5020",
+                                 ClientUri = "http://localhost:5019",
                                  RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
