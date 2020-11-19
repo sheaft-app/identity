@@ -28,6 +28,8 @@ using Serilog;
 using Serilog.Events;
 using NewRelic.LogEnrichers.Serilog;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace Sheaft.Identity
 {
@@ -170,37 +172,37 @@ namespace Sheaft.Identity
                         }
                     };
                 });
-                //.AddTwitter("tw", "Twitter", options =>
-                //{
-                //    options.ConsumerKey = Configuration.GetValue<string>("Authentication:Twitter:clientId");
-                //    options.ConsumerSecret = Configuration.GetValue<string>("Authentication:Twitter:secret");
-                //    options.RemoteAuthenticationTimeout = TimeSpan.FromSeconds(60);
-                //    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-                //    options.RetrieveUserDetails = true;
-                //    options.CallbackPath = "/signin-twitter";
-                //    options.Events = new TwitterEvents
-                //    {
-                //        OnCreatingTicket = context =>
-                //        {
-                //            var identity = (ClaimsIdentity)context.Principal.Identity;
-                //            var profileImg = context.User.GetProperty("profile_image_url_https").ToString();
-                //            var name = context.User.GetProperty("name").ToString();
+            //.AddTwitter("tw", "Twitter", options =>
+            //{
+            //    options.ConsumerKey = Configuration.GetValue<string>("Authentication:Twitter:clientId");
+            //    options.ConsumerSecret = Configuration.GetValue<string>("Authentication:Twitter:secret");
+            //    options.RemoteAuthenticationTimeout = TimeSpan.FromSeconds(60);
+            //    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+            //    options.RetrieveUserDetails = true;
+            //    options.CallbackPath = "/signin-twitter";
+            //    options.Events = new TwitterEvents
+            //    {
+            //        OnCreatingTicket = context =>
+            //        {
+            //            var identity = (ClaimsIdentity)context.Principal.Identity;
+            //            var profileImg = context.User.GetProperty("profile_image_url_https").ToString();
+            //            var name = context.User.GetProperty("name").ToString();
 
-                //            identity.AddClaim(new Claim(JwtClaimTypes.Picture, profileImg));
-                //            identity.AddClaim(new Claim(JwtClaimTypes.Name, name));
+            //            identity.AddClaim(new Claim(JwtClaimTypes.Picture, profileImg));
+            //            identity.AddClaim(new Claim(JwtClaimTypes.Name, name));
 
-                //            if (name.Split(" ").Length > 1)
-                //            {
-                //                identity.AddClaim(new Claim(JwtClaimTypes.GivenName, name.Split(" ")[0]));
-                //                identity.AddClaim(new Claim(JwtClaimTypes.FamilyName, name.Split(" ")[1]));
-                //            }
+            //            if (name.Split(" ").Length > 1)
+            //            {
+            //                identity.AddClaim(new Claim(JwtClaimTypes.GivenName, name.Split(" ")[0]));
+            //                identity.AddClaim(new Claim(JwtClaimTypes.FamilyName, name.Split(" ")[1]));
+            //            }
 
-                //            return Task.CompletedTask;
-                //        }
-                //    };
-                //});
+            //            return Task.CompletedTask;
+            //        }
+            //    };
+            //});
 
-            services.AddIdentityServer(options =>
+            var identityServerBuild = services.AddIdentityServer(options =>
             {
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseInformationEvents = true;
@@ -208,6 +210,10 @@ namespace Sheaft.Identity
                 options.Events.RaiseSuccessEvents = true;
 
                 options.EmitStaticAudienceClaim = true;
+                if (Env.IsDevelopment())
+                {
+                    options.IssuerUri = Configuration.GetValue<string>("IssuerUri");
+                }
             })
             .AddAspNetIdentity<AppUser>()
             .AddConfigurationStore(options =>
@@ -224,8 +230,7 @@ namespace Sheaft.Identity
 
                 options.EnableTokenCleanup = true;
                 options.TokenCleanupInterval = 3600;
-            })
-            .AddDeveloperSigningCredential();
+            }).AddDeveloperSigningCredential();
 
             services.AddScoped<IAmazonSimpleEmailService, AmazonSimpleEmailServiceClient>(_ => new AmazonSimpleEmailServiceClient(Configuration.GetValue<string>("Mailer:ApiId"), Configuration.GetValue<string>("Mailer:ApiKey"), RegionEndpoint.EUCentral1));
 
