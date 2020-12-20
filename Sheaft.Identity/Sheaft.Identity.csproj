@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.5.0.37" />
+    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.5.0.52" />
     <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.1" />
     <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.1" />
     <PackageReference Include="IdentityServer4.EntityFramework.Storage" Version="4.1.1" />
@@ -32,8 +32,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.10" />
-    <PackageReference Include="NewRelic.Agent" Version="8.35.0" />
-    <PackageReference Include="NewRelic.Agent.Api" Version="8.35.0" />
+    <PackageReference Include="NewRelic.Agent" Version="8.36.0" />
+    <PackageReference Include="NewRelic.Agent.Api" Version="8.36.0" />
     <PackageReference Include="NewRelic.LogEnrichers.Serilog" Version="1.0.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
