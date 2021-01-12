@@ -1,18 +1,56 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "watch",
-      "command": "dotnet",
-      "type": "process",
-      "args": [
-        "watch",
-        "run",
-        "${workspaceFolder}/Sheaft.Identity/Sheaft.Identity.csproj",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary"
-      ],
-      "problemMatcher": "$msCompile"
-    }
-  ]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Sheaft.Identity/Sheaft.Identity.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/Sheaft.Identity/Sheaft.Identity.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "--project",
+                "${workspaceFolder}/Sheaft.Identity/Sheaft.Identity.csproj",
+                "run",
+                "${workspaceFolder}/Sheaft.Identity/Sheaft.Identity.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+          "label": "clean",
+          "command": "dotnet",
+          "args": [
+            "clean",
+            "${workspaceFolder}/Identity.sln",
+            "/property:GenerateFullPaths=true",
+            "/consoleloggerparameters:NoSummary"
+          ],
+          "type": "process",
+          "problemMatcher": "$msCompile"
+        }
+    ]
 }
