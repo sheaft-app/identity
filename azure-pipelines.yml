@@ -28,7 +28,7 @@ steps:
     inputs:
       rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/release"
       includeRootFolder: false
-      archiveFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId)-nomonitoring.zip"
+      archiveFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId)-staging.zip"
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: '$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId).zip'
@@ -36,5 +36,5 @@ steps:
   - task: PublishBuildArtifacts@1
     displayName: "Publish WithoutMonitoring"
     inputs:
-      PathtoPublish: '$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId)-nomonitoring.zip'
-      artifactName: 'sheaft-identity-nomonitoring'
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId)-staging.zip'
+      artifactName: 'sheaft-identity-staging'
