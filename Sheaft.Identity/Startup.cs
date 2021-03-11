@@ -615,6 +615,10 @@ namespace Sheaft.Identity
                     });
                     configContext.SaveChanges();
                 }
+                
+                var platform = Configuration.GetValue<string>("Clients:Platform");
+                if (!string.IsNullOrWhiteSpace(platform))
+                    platform = $"{platform}.";
 
                 var appName = Configuration.GetValue<string>("Clients:App:Name");
                 if (configContext.Clients.All(c => c.ClientName != appName))
@@ -629,7 +633,7 @@ namespace Sheaft.Identity
                                      new ClientSecret{Value = Configuration.GetValue<string>("Clients:App:Secret")}
                                  },
                                  ClientName = appName,
-                                 ClientUri = "http://localhost:4200",
+                                 ClientUri = $"https://{platform}app.sheaft.com",
                                  RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
@@ -638,7 +642,8 @@ namespace Sheaft.Identity
                                      new ClientCorsOrigin { Origin = "http://localhost:5002" },
                                      new ClientCorsOrigin { Origin = "https://localhost:5003" },
                                      new ClientCorsOrigin { Origin = "http://localhost:5009" },
-                                     new ClientCorsOrigin { Origin = "https://localhost:5010" }
+                                     new ClientCorsOrigin { Origin = "https://localhost:5010" },
+                                     new ClientCorsOrigin { Origin = $"https://{platform}app.sheaft.com" }
                                  },
                                  AllowedScopes = new List<ClientScope>() {
                                      new ClientScope { Scope = IdentityServerConstants.StandardScopes.OpenId },
@@ -655,14 +660,17 @@ namespace Sheaft.Identity
                                  Enabled = true,
                                  RedirectUris = new List<ClientRedirectUri>() {
                                      new ClientRedirectUri { RedirectUri = "http://localhost:4200" },
-                                     new ClientRedirectUri { RedirectUri = "http://localhost:4200/#/" },
                                      new ClientRedirectUri { RedirectUri = "http://localhost:4200/#/callback" },
                                      new ClientRedirectUri { RedirectUri = "http://localhost:4200/#/callback-silent" },
+                                     new ClientRedirectUri { RedirectUri = $"https://{platform}app.sheaft.com" },
+                                     new ClientRedirectUri { RedirectUri = $"https://{platform}app.sheaft.com/#/callback" },
+                                     new ClientRedirectUri { RedirectUri = $"https://{platform}app.sheaft.com/#/callback-silent" },
                                  },
                                  PostLogoutRedirectUris = new List<ClientPostLogoutRedirectUri>() {
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:4200"},
-                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:4200/#/" },
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:4200/#/logout" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = $"https://{platform}app.sheaft.com" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = $"https://{platform}app.sheaft.com/#/logout" },
                                  },
                                  EnableLocalLogin = true,
                                  AllowOfflineAccess = true,
@@ -705,13 +713,14 @@ namespace Sheaft.Identity
                                      new ClientSecret{Value = Configuration.GetValue<string>("Clients:Manage:Secret")}
                                  },
                                  ClientName = manageName,
-                                 ClientUri = "http://localhost:5007",
+                                 ClientUri = $"https://{platform}manage.sheaft.com",
                                  RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
                                  AllowedCorsOrigins = new List<ClientCorsOrigin>() {
                                      new ClientCorsOrigin { Origin = "https://localhost:5008" },
                                      new ClientCorsOrigin { Origin = "http://localhost:5007" },
+                                     new ClientCorsOrigin { Origin = $"https://{platform}manage.sheaft.com" },
                                  },
                                  AllowedScopes = new List<ClientScope>() {
                                      new ClientScope { Scope = IdentityServerConstants.StandardScopes.OpenId },
@@ -726,10 +735,12 @@ namespace Sheaft.Identity
                                  RedirectUris = new List<ClientRedirectUri>() {
                                      new ClientRedirectUri { RedirectUri = "https://localhost:5008/signin-oidc" },
                                      new ClientRedirectUri { RedirectUri = "http://localhost:5007/signin-oidc" },
+                                     new ClientRedirectUri { RedirectUri = $"https://{platform}manage.sheaft.com/signin-oidc" },
                                  },
                                  PostLogoutRedirectUris = new List<ClientPostLogoutRedirectUri>() {
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://localhost:5008/signout-oidc" },
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:5007/signout-oidc" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = $"https://{platform}manage.sheaft.com/signout-oidc" },
                                  },
                                  EnableLocalLogin = true,
                                  AllowOfflineAccess = true,
@@ -776,13 +787,14 @@ namespace Sheaft.Identity
                                      new ClientSecret{Value = Configuration.GetValue<string>("Clients:Jobs:Secret")}
                                  },
                                  ClientName = jobName,
-                                 ClientUri = "http://localhost:5019",
+                                 ClientUri = $"https://{platform}jobs.sheaft.com",
                                  RequireClientSecret = false,
                                  AllowAccessTokensViaBrowser = true,
                                  RequirePkce = true,
                                  AllowedCorsOrigins = new List<ClientCorsOrigin>() {
                                      new ClientCorsOrigin { Origin = "https://localhost:5020" },
                                      new ClientCorsOrigin { Origin = "http://localhost:5019" },
+                                     new ClientCorsOrigin { Origin = $"https://{platform}jobs.sheaft.com" },
                                  },
                                  AllowedScopes = new List<ClientScope>() {
                                      new ClientScope { Scope = IdentityServerConstants.StandardScopes.OpenId },
@@ -797,10 +809,12 @@ namespace Sheaft.Identity
                                  RedirectUris = new List<ClientRedirectUri>() {
                                      new ClientRedirectUri { RedirectUri = "https://localhost:5020/signin-oidc" },
                                      new ClientRedirectUri { RedirectUri = "http://localhost:5019/signin-oidc" },
+                                     new ClientRedirectUri { RedirectUri = $"https://{platform}jobs.sheaft.com/signin-oidc" },
                                  },
                                  PostLogoutRedirectUris = new List<ClientPostLogoutRedirectUri>() {
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "https://localhost:5020/signout-oidc" },
                                      new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = "http://localhost:5019/signout-oidc" },
+                                     new ClientPostLogoutRedirectUri { PostLogoutRedirectUri = $"https://{platform}jobs.sheaft.com/signout-oidc" },
                                  },
                                  EnableLocalLogin = true,
                                  AllowOfflineAccess = true,
