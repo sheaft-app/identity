@@ -5,3 +5,4 @@ Sheaft.Identity/appsettings.Development.json
 Sheaft.Identity.Mailer/bin
 Sheaft.Identity.Mailer/obj
 .history
+.idea
