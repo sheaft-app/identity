@@ -18,23 +18,7 @@ steps:
       rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/release"
       includeRootFolder: false
       archiveFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId).zip"
-  - task: DeleteFiles@1
-    displayName: "Delete NewRelic"
-    inputs:
-      SourceFolder: '$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/release/newrelic'
-      Contents: '*'
-  - task: ArchiveFiles@2
-    displayName: "Archive files"
-    inputs:
-      rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/release"
-      includeRootFolder: false
-      archiveFile: "$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId)-staging.zip"
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: '$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId).zip'
       artifactName: 'sheaft-identity'
-  - task: PublishBuildArtifacts@1
-    displayName: "Publish WithoutMonitoring"
-    inputs:
-      PathtoPublish: '$(System.DefaultWorkingDirectory)/publish_output/Sheaft.Identity/build$(Build.BuildId)-staging.zip'
-      artifactName: 'sheaft-identity-staging'
